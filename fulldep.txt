@@ -1,0 +1,256 @@
+i   adduser                         - add and remove users and groups           
+i   apt                             - commandline package manager               
+i   apt-utils                       - package management related utility program
+i   aptitude                        - terminal-based package manager            
+i   base-files                      - Debian base system miscellaneous files    
+i   base-passwd                     - Debian base system master password and gro
+i   bash                            - GNU Bourne Again SHell                    
+i   bsdutils                        - basic utilities from 4.4BSD-Lite          
+i   build-essential                 - Informational list of build-essential pack
+i   busybox-initramfs               - Standalone shell setup for initramfs      
+i   bzip2                           - high-quality block-sorting file compressor
+i   cmake                           - cross-platform, open-source make system   
+i   cmake-curses-gui                - curses based user interface for CMake (ccm
+i   console-setup                   - console font and keymap setup program     
+i   console-setup-linux             - Linux specific part of console-setup      
+i   coreutils                       - GNU core utilities                        
+i   cpio                            - GNU cpio -- a program to manage archives o
+i   cron                            - process scheduling daemon                 
+i   dash                            - POSIX-compliant shell                     
+i   debconf                         - Debian configuration management system    
+i   debconf-i18n                    - full internationalization support for debc
+i   debianutils                     - Miscellaneous utilities specific to Debian
+i   dh-python                       - Debian helper tools for packaging Python l
+i   diffutils                       - File comparison utilities                 
+i   distro-info-data                - information about the distributions' relea
+i   doxygen                         - Documentation system for C, C++, Java, Pyt
+i   dpkg                            - Debian package management system          
+i   e2fslibs                        - ext2/ext3/ext4 file system libraries      
+i   e2fsprogs                       - ext2/ext3/ext4 file system utilities      
+i   efibootmgr                      - Interact with the EFI Boot Manager        
+i   eject                           - ejects CDs and operates CD-Changers under 
+i   file                            - Determines file type using "magic" numbers
+i   findutils                       - utilities for finding files--find, xargs  
+i   firefox-locale-en               - English language pack for Firefox         
+i   fwupdate                        - Tools to manage UEFI firmware updates     
+i   fwupdate-signed                 - Linux Firmware Updater EFI signed binary  
+i   gcc-5-base                      - GCC, the GNU Compiler Collection (base pac
+i   gcc-6-base                      - GCC, the GNU Compiler Collection (base pac
+i   gdal-bin                        - Geospatial Data Abstraction Library - Util
+i   git                             - fast, scalable, distributed revision contr
+i   gnome-terminal                  - GNOME terminal emulator application       
+i   gnupg                           - GNU privacy guard - a free PGP replacement
+i   gpgv                            - GNU privacy guard - signature verification
+i   graphviz                        - rich set of graph drawing tools           
+i   grep                            - GNU grep, egrep and fgrep                 
+i   grub-common                     - GRand Unified Bootloader (common files)   
+i   grub-gfxpayload-lists           - GRUB gfxpayload blacklist                 
+i   grub-pc                         - GRand Unified Bootloader, version 2 (PC/BI
+i   grub-pc-bin                     - GRand Unified Bootloader, version 2 (PC/BI
+i   grub2-common                    - GRand Unified Bootloader (common files for
+i   gzip                            - GNU compression utilities                 
+i   hostname                        - utility to set/show the host name or domai
+i   hyphen-en-us                    - US English hyphenation patterns for LibreO
+i   ifupdown                        - high level tools to configure network inte
+i   init                            - System-V-like init utilities - metapackage
+i   init-system-helpers             - helper tools for all init systems         
+i   initramfs-tools                 - generic modular initramfs generator (autom
+i   initramfs-tools-bin             - binaries used by initramfs-tools          
+i   initramfs-tools-core            - generic modular initramfs generator (core 
+i   initscripts                     - scripts for initializing and shutting down
+i   insserv                         - boot sequence organizer using LSB init.d s
+i   intel-microcode                 - Processor microcode firmware for Intel CPU
+i   iproute2                        - networking and traffic control tools      
+i   iputils-ping                    - Tools to test the reachability of network 
+i   isc-dhcp-client                 - DHCP client for automatically obtaining an
+i   isc-dhcp-common                 - common files used by all of the isc-dhcp p
+i   kbd                             - Linux console font and keytable utilities 
+i   keyboard-configuration          - system-wide keyboard preferences          
+i   klibc-utils                     - small utilities built with klibc for early
+i   kmod                            - tools for managing Linux kernel modules   
+i   language-pack-en                - translation updates for language English  
+i   language-pack-en-base           - translations for language English         
+i   language-pack-gnome-en          - GNOME translation updates for language Eng
+i   language-pack-gnome-en-base     - GNOME translations for language English   
+i   less                            - pager program similar to more             
+i   libacl1                         - Access control list shared library        
+i   libapparmor1                    - changehat AppArmor library                
+i   libapt-inst2.0                  - deb package format runtime library        
+i   libapt-pkg5.0                   - package management runtime library        
+i   libatm1                         - shared library for ATM (Asynchronous Trans
+i   libattr1                        - Extended attribute shared library         
+i   libaudit-common                 - Dynamic library for security auditing - co
+i   libaudit1                       - Dynamic library for security auditing     
+i   libblkid1                       - block device ID library                   
+i   libboost-dev                    - Boost C++ Libraries development files (def
+i   libboost-program-options-dev    - program options library for C++ (default v
+i   libboost-python-dev             - Boost.Python Library development files (de
+i   libbsd0                         - utility functions from BSD systems - share
+i   libbz2-1.0                      - high-quality block-sorting file compressor
+i   libbz2-dev                      - high-quality block-sorting file compressor
+i   libc-bin                        - GNU C Library: Binaries                   
+i   libc6                           - GNU C Library: Shared libraries           
+i   libcap2                         - POSIX 1003.1e capabilities (library)      
+i   libcap2-bin                     - POSIX 1003.1e capabilities (utilities)    
+i   libcomerr2                      - common error description library          
+i   libcryptsetup4                  - disk encryption support - shared library  
+i   libdb5.3                        - Berkeley v5.3 Database Libraries [runtime]
+i   libdebconfclient0               - Debian Configuration Management System (C-
+i   libdevmapper1.02.1              - Linux Kernel Device Mapper userspace libra
+i   libdns-export162                - Exported DNS Shared Library               
+i   libefivar0                      - Library to manage UEFI variables          
+i   libestr0                        - Helper functions for handling strings (lib
+i   libexpat1                       - XML parsing C library - runtime library   
+i   libexpat1-dev                   - XML parsing C library - development kit   
+i   libfdisk1                       - fdisk partitioning library                
+i   libffi6                         - Foreign Function Interface library runtime
+i   libfribidi0                     - Free Implementation of the Unicode BiDi al
+i   libfwup0                        - Library to manage UEFI firmware updates   
+i   libgcc1                         - GCC support library                       
+i   libgcrypt20                     - LGPL Crypto library - runtime library     
+i   libgdal-dev                     - Geospatial Data Abstraction Library - Deve
+i   libgeoip1                       - non-DNS IP-to-country resolver library    
+i   libgeos++-dev                   - Geometry engine for GIS - C++ development 
+i   libgmp10                        - Multiprecision arithmetic library         
+i   libgnutls-openssl27             - GNU TLS library - OpenSSL wrapper         
+i   libgnutls30                     - GNU TLS library - main runtime library    
+i   libgpg-error0                   - library for common error values and messag
+i   libhogweed4                     - low level cryptographic library (public-ke
+i   libidn11                        - GNU Libidn library, implementation of IETF
+i   libisc-export160                - Exported ISC Shared Library               
+i   libjson-c2                      - JSON manipulation library - shared library
+i   libklibc                        - minimal libc subset for use with initramfs
+i   libkmod2                        - libkmod shared library                    
+i   libkrb5-dev                     - Headers and development libraries for MIT 
+i   liblocale-gettext-perl          - module using libc functions for internatio
+i   liblz4-1                        - Fast LZ compression algorithm library - ru
+i   liblzma5                        - XZ-format compression library             
+i   liblzo2-2                       - data compression library                  
+i   libmagic1                       - File type determination library using "mag
+i   libmnl0                         - minimalistic Netlink communication library
+i   libmount1                       - device mounting library                   
+i   libmpdec2                       - library for decimal floating point arithme
+i   libncurses5                     - shared libraries for terminal handling    
+i   libncursesw5                    - shared libraries for terminal handling (wi
+i   libnettle6                      - low level cryptographic library (symmetric
+i   libnewt0.52                     - Not Erik's Windowing Toolkit - text mode w
+i   libnih1                         - NIH Utility Library                       
+i   libosmium-dev                   - C++ framework for working with OSM data fi
+i   libosmpbf-dev                   - C headers for OpenStreetMap PBF file forma
+i   libp11-kit0                     - library for loading and coordinating acces
+i   libpam-modules                  - Pluggable Authentication Modules for PAM  
+i   libpam-modules-bin              - Pluggable Authentication Modules for PAM -
+i   libpam-runtime                  - Runtime support for the PAM library       
+i   libpam0g                        - Pluggable Authentication Modules library  
+i   libpcre3                        - Perl 5 Compatible Regular Expression Libra
+i   libpng12-0                      - PNG library - runtime                     
+i   libpopt0                        - lib for parsing cmdline parameters        
+i   libpq-dev                       - header files for libpq5 (PostgreSQL librar
+i   libprocps4                      - library for accessing process information 
+i   libproj-dev                     - Cartographic projection library (developme
+i   libpython3-stdlib               - interactive high-level object-oriented lan
+i   libpython3.5-minimal            - Minimal subset of the Python language (ver
+i   libpython3.5-stdlib             - Interactive high-level object-oriented lan
+i   libqt4-sql-sqlite               - Qt 4 SQLite 3 database driver             
+i   libreadline6                    - GNU readline and history libraries, run-ti
+i   libreoffice-help-en-us          - office productivity suite -- English_ameri
+i   libseccomp2                     - high level interface to Linux seccomp filt
+i   libselinux1                     - SELinux runtime shared libraries          
+i   libsemanage-common              - Common files for SELinux policy management
+i   libsemanage1                    - SELinux policy management library         
+i   libsepol1                       - SELinux library for manipulating binary se
+i   libslang2                       - S-Lang programming library - runtime versi
+i   libsmartcols1                   - smart column output alignment library     
+i   libsparsehash-dev               - Google's extremely memory-efficient C++ ha
+i   libsqlite3-0                    - SQLite 3 shared library                   
+i   libss2                          - command-line interface parsing library    
+i   libssl1.0.0                     - Secure Sockets Layer toolkit - shared libr
+i   libstdc++6                      - GNU Standard C++ Library v3               
+i   libsystemd0                     - systemd utility library                   
+i   libtasn1-6                      - Manage ASN.1 structures (runtime)         
+i   libtext-charwidth-perl          - get display widths of characters on the te
+i   libtext-iconv-perl              - converts between character sets in Perl   
+i   libtext-wrapi18n-perl           - internationalized substitute of Text::Wrap
+i   libtinfo5                       - shared low-level terminfo library for term
+i   libudev1                        - libudev shared library                    
+i   libusb-0.1-4                    - userspace USB programming library         
+i   libustr-1.0-1                   - Micro string library: shared library      
+i   libuuid1                        - Universally Unique ID library             
+i   libxtables11                    - netfilter xtables library                 
+i   linux-base                      - Linux image base package                  
+i   linux-generic                   - Complete Generic Linux kernel and headers 
+i   locales                         - GNU C Library: National Language (locale) 
+i   login                           - system login tools                        
+i   logrotate                       - Log rotation utility                      
+i   lsb-base                        - Linux Standard Base init script functional
+i   lsb-release                     - Linux Standard Base version reporting util
+i   make                            - utility for directing compilation         
+i   makedev                         - creates device files in /dev              
+i   mawk                            - a pattern scanning and text processing lan
+i   mime-support                    - MIME files 'mime.types' & 'mailcap', and s
+i   mount                           - tools for mounting and manipulating filesy
+i   multiarch-support               - Transitional package to ensure multiarch c
+i   mythes-en-us                    - English (USA) Thesaurus for LibreOffice   
+i   ncurses-base                    - basic terminal type definitions           
+i   ncurses-bin                     - terminal-related programs and man pages   
+i   net-tools                       - NET-3 networking toolkit                  
+i   netbase                         - Basic TCP/IP networking system            
+i   netcat-openbsd                  - TCP/IP swiss army knife                   
+i   nodejs                          - evented I/O for V8 javascript             
+i   notify-osd                      - daemon that displays passive pop-up notifi
+i   npm                             - package manager for Node.js               
+i   openoffice.org-hyphenation      - Hyphenation patterns for OpenOffice.org   
+i   os-prober                       - utility to detect other OSes on a set of d
+i   osmium-tool                     - Command line tool for working with OpenStr
+i   passwd                          - change and administer password and group d
+i   perl-base                       - minimal Perl system                       
+i   pgadmin3                        - graphical administration tool for PostgreS
+i   postgis                         - Geographic objects support for PostgreSQL 
+i   postgresql                      - object-relational SQL database (supported 
+i   postgresql-9.5-pgrouting        - Routing functionality support for PostgreS
+i   postgresql-9.5-postgis-2.2      - Geographic objects support for PostgreSQL 
+i   postgresql-contrib              - additional facilities for PostgreSQL (supp
+i   postgresql-contrib-9.5          - additional facilities for PostgreSQL      
+i   procps                          - /proc file system utilities               
+i   python-dev                      - header files and a static library for Pyth
+i   python-gdal                     - Python bindings to the Geospatial Data Abs
+i   python-pip                      - alternative Python package installer      
+i   python3                         - interactive high-level object-oriented lan
+i   python3-minimal                 - minimal subset of the Python language (def
+i   python3.5                       - Interactive high-level object-oriented lan
+i   python3.5-minimal               - Minimal subset of the Python language (ver
+i   readline-common                 - GNU readline and history libraries, common
+i   resolvconf                      - name server information handler           
+i   rsyslog                         - reliable system and kernel logging daemon 
+i   sbsigntool                      - utility for signing and verifying files fo
+i   secureboot-db                   - Secure Boot updates for DB and DBX        
+i   sed                             - The GNU sed stream editor                 
+i   sensible-utils                  - Utilities for sensible alternative selecti
+i   sudo                            - Provide limited super user privileges to s
+i   systemd                         - system and service manager                
+i   systemd-sysv                    - system and service manager - SysV links   
+i   sysv-rc                         - System-V-like runlevel change mechanism   
+i   sysvinit-utils                  - System-V-like utilities                   
+i   tar                             - GNU version of the tar archiving utility  
+i   thunderbird-locale-en           - English language pack for Thunderbird     
+i   thunderbird-locale-en-us        - Transitional English language pack for Thu
+i   tzdata                          - time zone and daylight-saving time data   
+i   ubuntu-desktop                  - The Ubuntu desktop system                 
+i   ubuntu-keyring                  - GnuPG keys of the Ubuntu archive          
+i   ubuntu-minimal                  - Minimal core of Ubuntu                    
+i   ubuntu-restricted-addons        - Commonly used restricted packages for Ubun
+i   ubuntu-standard                 - The Ubuntu standard system                
+i   ucf                             - Update Configuration File(s): preserve use
+i   udev                            - /dev/ and hotplug management daemon       
+i   unity                           - Interface designed for efficiency of space
+i   unity-settings-daemon           - daemon handling the Unity session settings
+i   ureadahead                      - Read required files in advance            
+i   util-linux                      - miscellaneous system utilities            
+i   vim-common                      - Vi IMproved - Common files                
+i   vim-tiny                        - Vi IMproved - enhanced vi editor - compact
+i   wamerican                       - American English dictionary words for /usr
+i   wbritish                        - British English dictionary words for /usr/
+i   whiptail                        - Displays user-friendly dialog boxes from s
+i   xkb-data                        - X Keyboard Extension (XKB) configuration d
+i   zlib1g                          - compression library - runtime             
+i   zlib1g-dev                      - compression library - development         
