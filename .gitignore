@@ -1,0 +1,12 @@
+/venv/
+*.pyc
+*.pyo
+__pycache__/
+*.py[cod]
+*.so
+*.log
+*.pot
+*~
+local_settings.py
+MANIFEST
+*.egg-info
