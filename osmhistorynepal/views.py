@@ -61,42 +61,42 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	stat = {}
 	# selection statistics card
 	sstat = {}
-	# count the distinct buildings as of the start time
+	# count the buildings as of the start time
 	bl = ob.filter(tags__contains=['building'])
-	sstat['Buildings_start'] = bl.filter(timestamp__date__lte=start).values('feature_type','feature_id').distinct().count()
-	# count the distinct buildings as of the end time
-	sstat['Buildings_end'] = bl.filter(timestamp__date__lte=end).values('feature_type','feature_id').distinct().count()
-	# count the distinct roads as of the start time
+	sstat['Buildings_start'] = bl.filter(timestamp__date__lte=start).values('feature_type','feature_id').count()
+	# count the buildings as of the end time
+	sstat['Buildings_end'] = bl.filter(timestamp__date__lte=end).values('feature_type','feature_id').count()
+	# count the roads as of the start time
 	rd = ob.filter(Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
         	Q(tags__contains=['highway']) | Q(tags__contains=['tracktype']) )
-	sstat['Roads_start'] = rd.filter(timestamp__date__lte=start).values('feature_type','feature_id').distinct().count()
-	# count the distinct roads as of the end time
-	sstat['Roads_end'] = rd.filter(timestamp__date__lte=end).values('feature_type','feature_id').distinct().count()
-	# count the distinct schools as of the start time
+	sstat['Roads_start'] = rd.filter(timestamp__date__lte=start).values('feature_type','feature_id').count()
+	# count the roads as of the end time
+	sstat['Roads_end'] = rd.filter(timestamp__date__lte=end).values('feature_type','feature_id').count()
+	# count the schools as of the start time
 	sc = ob.filter(Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
         	Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
 		Q(tags__contains=['music_school']))
-	# count the distinct schools as of the end time
-	sstat['Schools_end'] = sc.filter(timestamp__date__lte=end).values('feature_type','feature_id').distinct().count()
-	sstat['Schools_end'] = sc.filter(timestamp__date__lte=end).values('feature_type','feature_id').distinct().count()
-	# count the distinct hospitals as of the start time
+	# count the schools as of the end time
+	sstat['Schools_end'] = sc.filter(timestamp__date__lte=end).values('feature_type','feature_id').count()
+	sstat['Schools_end'] = sc.filter(timestamp__date__lte=end).values('feature_type','feature_id').count()
+	# count the hospitals as of the start time
 	hs = ob.filter(tags__contains=['hospital'])
-	sstat['Hospitals_start'] = hs.filter(timestamp__date__lte=start).values('feature_type','feature_id').distinct().count()
-	sstat['Hospitals_end'] = hs.filter(timestamp__date__lte=end).values('feature_type','feature_id').distinct().count() 
+	sstat['Hospitals_start'] = hs.filter(timestamp__date__lte=start).values('feature_type','feature_id').count()
+	sstat['Hospitals_end'] = hs.filter(timestamp__date__lte=end).values('feature_type','feature_id').count() 
 	# wrap it into the greater structure
 	stat['Selection Statistics'] = sstat
 	# leaderboards
 	# ways
 	ws = ob.filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='way')).values_list('user').annotate( \
         	num=Count('user')).order_by('-num')
-	war = [ [ ("OSM Username",ws[0][0]), ("Ways",ws[0][1]), ("Rank","first") ] \
-        	[ ("OSM Username",ws[1][0]), ("Ways", ws[1][1]), ("Rank","second") ] \
+	war = [ [ ("OSM Username",ws[0][0]), ("Ways",ws[0][1]), ("Rank","first") ], \
+        	[ ("OSM Username",ws[1][0]), ("Ways", ws[1][1]), ("Rank","second") ], \
 		[ ("OSM Username", ws[2][0]), ("Ways", ws[1][1]), ("Rank","third")] ]
 	# nodes
 	ns = ob.filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).values_list('user').annotate( \
         	num=Count('user')).order_by('-num')
-	nar = [ [ ("OSM Username", ns[0][0]), ("Nodes", ns[0][1]), ("Rank", "first") ] \
-        	[ ("OSM Username", ns[1][0]), ("Nodes", ns[1][1]), ("Rank", "second") ] \
+	nar = [ [ ("OSM Username", ns[0][0]), ("Nodes", ns[0][1]), ("Rank", "first") ], \
+        	[ ("OSM Username", ns[1][0]), ("Nodes", ns[1][1]), ("Rank", "second") ], \
 		[ ("OSM Username", ns[2][0]), ("Noses", ns[1][1]), ("Rank", "third")] ]
 	# put them in our stat object and find most freq. edited POI
 	foundnodes = False
@@ -130,13 +130,14 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		foundnr = False
 		for index, item in enumerate(ns):
 			if item[index][0] == user:
-				stat['Nodes']['user']['rank'] = index 
+				stat['Nodes']['user']['rank'] = index
+				foundnr = True 
 				break
 		if not foundnr:
 			stat['Nodes']['user']['rank'] = 0			
 		stat['Nodes']['user']['highlighted'] = True
 		stat['Nodes']['user']['Most Frequently edited POI'] = ob.filter(Q(user=user) & \
-			Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).raw('''SELECT k, v, count(*) \
+		Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).raw('''SELECT k, v, count(*) \
 			as count FROM ( SELECT skeys(tags) AS k, svals(tags) \
 			as v, user, timestamp FROM populate_feature) AS t \
 			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
@@ -147,13 +148,14 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		for index, item in enumerate(ws):
 			if item[index][0] == user:
 				stat['Ways']['user']['rank'] = index 
+				foundwr = True
 				break
 		if not foundwr:
 			stat['Ways']['user']['rank'] = 0
 		stat['Ways']['user']['highlighted'] = True
 		stat['Ways']['user']['Most Frequently edited POI'] = ob.filter(Q(user=user) & \
-			Q(timestamp__date__range=[start,end]) & \
-			Q(feature_type='way')).raw('''SELECT k, v, count(*) \
+		Q(timestamp__date__range=[start,end]) & \
+		Q(feature_type='way')).raw('''SELECT k, v, count(*) \
 			as count FROM ( SELECT skeys(tags) AS k, svals(tags) \
 			as v, user, timestamp FROM populate_feature) AS t \
 			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
