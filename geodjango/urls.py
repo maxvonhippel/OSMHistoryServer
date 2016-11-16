@@ -19,6 +19,7 @@ from osmhistorynepal import views as json_views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^usernames/', json_views.user_names_view),
     url(r'^jsoncountry/', json_views.nepal_statistics_view),
     url(r'^jsonselection/(?P<range>([0-9T,-:+])+)/(?P<mn_x>\d+)/(?P<mn_y>\d+)/(?P<mx_x>\d+)/(?P<mx_y>\d+)/(?P<user>\w+)/', json_views.selection_statistics_view),
 ]
