@@ -22,18 +22,18 @@ def nepal_statistics_view(request):
 	nstat['mappers'] = ob.all().values('uid').distinct().count()
 	# count the distinct buildings
 	nstat['buildings'] = ob.filter(tags__values__contains=['building']).values( \
-		"feature_type","feature_id").distinct().count()
+		'feature_type','feature_id').distinct().count()
 	# count the distinct roads
 	nstat['roads'] = ob.filter(Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
         	Q(tags__values__contains=['highway']) | Q(tags__values__contains=['tracktype']) \
-		).values("feature_type","feature_id").distinct().count()
+		).values('feature_type','feature_id').distinct().count()
 	# count the distinct schools
 	nstat['schools'] = ob.filter(Q(tags__values__contains=['school']) | Q(tags__values__contains=['college']) | \
         	Q(tags__values__contains=['university']) | Q(tags__values__contains=['kindergarten']) | \
-		Q(tags__values__contains=['music_school'])).values("feature_type","feature_id").distinct().count()
+		Q(tags__values__contains=['music_school'])).values('feature_type','feature_id').distinct().count()
 	# count the distinct hospitals
 	nstat['hospitals'] = ob.filter(Q(tags__values__contains=['hospital']) \
-        	).values("feature_type","feature_id").distinct().count()
+        	).values('feature_type','feature_id').distinct().count()
 	# wrap it up in a json format and return it
 	return JsonResponse(nstat)
     
@@ -67,26 +67,26 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	sstat = {}
 	# count the distinct buildings as of the start time
 	bl = ob.filter(tags__values__contains=['building'])
-	sstat['Buildings_start'] = bl.filter(timestamp__lte=start).values("feature_type","feature_id").distinct().count()
+	sstat['Buildings_start'] = bl.filter(timestamp__lte=start).values('feature_type','feature_id').distinct().count()
 	# count the distinct buildings as of the end time
-	sstat['Buildings_end'] = bl.filter(timestamp__lte=end).values("feature_type","feature_id").distinct().count()
+	sstat['Buildings_end'] = bl.filter(timestamp__lte=end).values('feature_type','feature_id').distinct().count()
 	# count the distinct roads as of the start time
 	rd = ob.filter(Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
         	Q(tags__values__contains=['highway']) | Q(tags__keys__contains=['tracktype']) )
-	sstat['Roads_start'] = rd.filter(timestamp__lte=start).values("feature_type","feature_id").distinct().count()
+	sstat['Roads_start'] = rd.filter(timestamp__lte=start).values('feature_type','feature_id').distinct().count()
 	# count the distinct roads as of the end time
-	sstat['Roads_end'] = rd.filter(timestamp__lte=end).values("feature_type","feature_id").distinct().count()
+	sstat['Roads_end'] = rd.filter(timestamp__lte=end).values('feature_type','feature_id').distinct().count()
 	# count the distinct schools as of the start time
 	sc = ob.filter(Q(tags__values__contains=['school']) | Q(tags__values__contains=['college']) | \
         	Q(tags__values__contains=['university']) | Q(tags__values__contains=['kindergarten']) | \
 		Q(tags__values__contains=['music_school']))
 	# count the distinct schools as of the end time
-	sstat['Schools_end'] = sc.filter(timestamp__lte=end).values("feature_type","feature_id").distinct().count()
-	sstat['Schools_end'] = sc.filter(timestamp__lte=end).values("feature_type","feature_id").distinct().count()
+	sstat['Schools_end'] = sc.filter(timestamp__lte=end).values('feature_type','feature_id').distinct().count()
+	sstat['Schools_end'] = sc.filter(timestamp__lte=end).values('feature_type','feature_id').distinct().count()
 	# count the distinct hospitals as of the start time
 	hs = ob.filter(tags__values__contains=['hospital'])
-	sstat['Hospitals_start'] = hs.filter(timestamp__lte=start).values("feature_type","feature_id").distinct().count()
-	sstat['Hospitals_end'] = hs.filter(timestamp__lte=end).values("feature_type","feature_id").distinct().count() 
+	sstat['Hospitals_start'] = hs.filter(timestamp__lte=start).values('feature_type','feature_id').distinct().count()
+	sstat['Hospitals_end'] = hs.filter(timestamp__lte=end).values('feature_type','feature_id').distinct().count() 
 	# wrap it into the greater structure
 	stat['Selection Statistics'] = sstat
 	# leaderboards
