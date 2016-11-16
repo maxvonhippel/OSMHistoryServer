@@ -138,7 +138,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			if item[index][0] == user:
 				stat['Nodes']['user']['rank'] = index 
 				break
-		if !foundnr:
+		if not foundnr:
 			stat['Nodes']['user']['rank'] = 0			
 		stat['Nodes']['user']['highlighted'] = True
 		stat['Nodes']['user']['Most Frequently edited POI'] = ob.filter(Q(user=user) & \
@@ -154,7 +154,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			if item[index][0] == user:
 				stat['Ways']['user']['rank'] = index 
 				break
-		if !foundwr:
+		if not foundwr:
 			stat['Ways']['user']['rank'] = 0
 		stat['Ways']['user']['highlighted'] = True
 		stat['Ways']['user']['Most Frequently edited POI'] = ob.filter(Q(user=user) & \
