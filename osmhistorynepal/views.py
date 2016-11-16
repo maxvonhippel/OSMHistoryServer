@@ -17,7 +17,7 @@ from django.db.models import Q
 def user_names_view(request):
 	ret = Feature.geoobjects.values_list('user', flat=True)
 	arr = {}
-	arr['usernames'] = ret
+	arr['usernames'] = json.dumps(ret)
 	return JsonResponse(arr)
 
 
