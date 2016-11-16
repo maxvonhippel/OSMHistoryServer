@@ -9,9 +9,11 @@ from django.contrib.gis.geos import Point
 from osmhistorynepal.models import Member, Feature # your appname.models, and your model names, here
 from django.db.models import Count
 from django.contrib.gis.geos import Polygon
-from datetime import datetime
+import datetime
+import dateutil.parser
 from django.db import connection
 from django.db.models import Q
+
 
 # define the response obj
 def nepal_statistics_view(request):
@@ -40,14 +42,11 @@ def nepal_statistics_view(request):
     
 # define the response obj
 # request = start, end, mn_x, mn_y, mx_x, mx_y, user
-# obviously this is still fundamentally broken
-# since i have not yet gone to the trouble of extracting the above values
-# from "request"
-def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
+cs_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# parse range
 	sstart,send = range.split(",") # 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
-	start = datetime.strptime(sstart, '%Y-%m-$dT%h:%M:%s%z')
-	end = datetime.strptime(send, '%Y-%m-$dT%h:%M:%s%z')
+	start = dateutil.parser.parse(sstart)
+	end = dateutil.parser.parse(send)
 	# define our bounding box
 	box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
 	# get all the objects
