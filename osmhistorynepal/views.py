@@ -11,6 +11,8 @@ from django.db.models import Count
 from django.contrib.gis.geos import Polygon
 from datetime import datetime
 from django.db import connection
+from django.http import HttpResponse
+from django.views import View
 
 # define the response obj
 def nepal_statistics_view(request):
@@ -42,8 +44,11 @@ def nepal_statistics_view(request):
 # obviously this is still fundamentally broken
 # since i have not yet gone to the trouble of extracting the above values
 # from "request"
-def selection_statistics_view(request):
-	# we assume that the start and end datetimes are localized
+def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
+	# parse range
+	sstart,send = range.split(",") # 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
+	start = datetime.strptime(sstart, '%Y-%m-$dT%h:%M:%s%z')
+	end = datetime.strptime(send, '%Y-%m-$dT%h:%M:%s%z')
 	# define our bounding box
 	box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
 	# get all the objects
