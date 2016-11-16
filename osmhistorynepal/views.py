@@ -14,8 +14,6 @@ import dateutil.parser
 from django.db import connection
 from django.db.models import Q
 
-
-# define the response obj
 def nepal_statistics_view(request):
 	# get all the objects
 	ob = Feature.geoobjects
@@ -40,9 +38,7 @@ def nepal_statistics_view(request):
 	# wrap it up in a json format and return it
 	return JsonResponse(nstat)
     
-# define the response obj
-# request = start, end, mn_x, mn_y, mx_x, mx_y, user
-cs_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
+def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# parse range
 	sstart,send = range.split(",") # 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
 	start = dateutil.parser.parse(sstart)
