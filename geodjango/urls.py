@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from osmhistorynepal import views as json_views
+from osmhistorynepal.views import views as json_views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
