@@ -14,6 +14,13 @@ import dateutil.parser
 from django.db import connection
 from django.db.models import Q
 
+def user_names_view(request):
+	ret = Feature.geoobjects.values_list('user', flat=True)
+	arr = {}
+	arr['usernames'] = ret
+	return JsonResponse(arr)
+
+
 def nepal_statistics_view(request):
 	# get all the objects
 	ob = Feature.geoobjects
