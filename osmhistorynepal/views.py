@@ -15,10 +15,8 @@ from django.db import connection
 from django.db.models import Q
 
 def user_names_view(request):
-	ret = Feature.geoobjects.values_list('user', flat=True)
-	arr = {}
-	arr['usernames'] = json.dumps(ret)
-	return JsonResponse(arr)
+	arr = raw('SELECT DISTINCT a.user FROM populate_feature a')
+	return JsonResponse(json.dumps(arr))
 
 
 def nepal_statistics_view(request):
