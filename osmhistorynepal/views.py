@@ -19,7 +19,7 @@ def nepal_statistics_view(request):
 	# make our json obj
 	nstat = {}
 	# count the distinct mappers
-	nstat['mappers'] = ob.all().values('uid').distinct().count()
+	nstat['mappers'] = ob.values('uid').distinct().count()
 	# count the distinct buildings
 	nstat['buildings'] = ob.filter(tags__values__contains=['building']).values( \
 		'feature_type','feature_id').distinct().count()
