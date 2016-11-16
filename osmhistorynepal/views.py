@@ -11,6 +11,7 @@ from django.db.models import Count
 from django.contrib.gis.geos import Polygon
 from datetime import datetime
 from django.db import connection
+from django.db.models import Q
 
 # define the response obj
 def nepal_statistics_view(request):
