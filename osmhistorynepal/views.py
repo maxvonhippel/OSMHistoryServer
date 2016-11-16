@@ -46,7 +46,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# define our bounding box
 	box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
 	# get all the objects
-	ndtmp = Feature.geoobjects.filter(Q(point__contained=box) & Q(feature_type='node'))
+	ndtmp = Feature.geoobjects.filter(Q(point__intersects=box) & Q(feature_type='node'))
 	# get the unique ids from ndtmp as strings
 	strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).order_by( \
 		'-feature_id_str').values_list('feature_id_str',flat=True).distinct()
