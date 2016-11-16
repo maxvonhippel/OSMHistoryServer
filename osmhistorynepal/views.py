@@ -94,13 +94,13 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# leaderboards
 	# ways
 	ws = ob.filter(Q(timestamp__range=[start,end]) & Q(feature_type='way')).values_list('user').annotate( \
-        	num=Count('user')).order_by('-num')[:3]
+        	num=Count('user')).order_by('-num')
 	war = [ [ ("OSM Username",ws[0][0]), ("Ways",ws[0][1]), ("Rank","first") ] \
         	[ ("OSM Username",ws[1][0]), ("Ways", ws[1][1]), ("Rank","second") ] \
 		[ ("OSM Username", ws[2][0]), ("Ways", ws[1][1]), ("Rank","third")] ]
 	# nodes
 	ns = ob.filter(Q(timestamp__range=[start,end]) & Q(feature_type='node')).values_list('user').annotate( \
-        	num=Count('user')).order_by('-num')[:3]
+        	num=Count('user')).order_by('-num')
 	nar = [ [ ("OSM Username", ns[0][0]), ("Nodes", ns[0][1]), ("Rank", "first") ] \
         	[ ("OSM Username", ns[1][0]), ("Nodes", ns[1][1]), ("Rank", "second") ] \
 		[ ("OSM Username", ns[2][0]), ("Noses", ns[1][1]), ("Rank", "third")] ]
@@ -133,9 +133,13 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# user search nodes
 	if user != None and not foundnodes:
         	stat['Nodes']['user']['OSM Username'] = user
-		stat['Nodes']['user']['rank'] = ob.values('user').filter( \
-			Q(timestamp__range=[start,end]) & Q(feature_type='node') \
-			).annotate('Nodes'=Count('user')).order_by('Nodes')[user]
+		foundnr = False
+		for index, item in enumerate(ns):
+			if item[index][0] == user:
+				stat['Nodes']['user']['rank'] = index 
+				break
+		if !foundnr:
+			stat['Nodes']['user']['rank'] = 0			
 		stat['Nodes']['user']['highlighted'] = True
 		stat['Nodes']['user']['Most Frequently edited POI'] = ob.filter(Q(user=user) & \
 			Q(timestamp__range=[start,end]) & Q(feature_type='node')).raw('''SELECT k, v, count(*) \
@@ -145,9 +149,13 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# user search ways
 	if user != None and not foundways:
         	stat['Ways']['user']['OSM Username'] = user
-		stat['Ways']['user']['rank'] = ob.values('user').filter( \
-			Q(timestamp__range=[start,end]) & Q(feature_type='way') \
-			).annotate('Ways'=Count('user')).order_by('Ways')[user]
+		foundwr = False
+		for index, item in enumerate(ws):
+			if item[index][0] == user:
+				stat['Ways']['user']['rank'] = index 
+				break
+		if !foundwr:
+			stat['Ways']['user']['rank'] = 0
 		stat['Ways']['user']['highlighted'] = True
 		stat['Ways']['user']['Most Frequently edited POI'] = ob.filter(Q(user=user) & \
 			Q(timestamp__range=[start,end]) & \
