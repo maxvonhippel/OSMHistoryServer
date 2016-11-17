@@ -95,7 +95,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			default = 0,
 			output_field=IntegerField())), \
         	Roads_end=Sum( \
-			Case(When((Qtags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+			Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
 			Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), \
 			timestamp__date__lte=end, then = 1), \
 			default = 0,
