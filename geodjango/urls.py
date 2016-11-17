@@ -13,7 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf import settings
+from django.conf.urls import include, url
 from django.contrib import admin
 from osmhistorynepal import views as json_views
 
@@ -23,3 +24,9 @@ urlpatterns = [
     url(r'^jsoncountry/', json_views.nepal_statistics_view),
     url(r'^jsonselection/(?P<range>([0-9T,-:+])+)/(?P<mn_x>\d+)/(?P<mn_y>\d+)/(?P<mx_x>\d+)/(?P<mx_y>\d+)/(?P<user>\w+)/', json_views.selection_statistics_view),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]

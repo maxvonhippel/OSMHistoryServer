@@ -42,10 +42,12 @@ INSTALLED_APPS = [
     'django_hstore',
     'osmhistorynepal',
     'django_extensions',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -118,6 +120,8 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+INTERNAL_IPS = '127.0.0.1'
 
 
 # Static files (CSS, JavaScript, Images)
