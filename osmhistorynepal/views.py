@@ -3,6 +3,7 @@ from django.shortcuts import render
 import sys
 import json
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django_hstore import hstore
 from django_hstore.hstore import DictionaryField
 from django.contrib.gis.geos import Point
@@ -14,8 +15,15 @@ import dateutil.parser
 from django.db import connection
 
 def user_names_view(request):
-	arr = Feature.geoobjects.raw('SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC')
-	return JsonResponse(json.dumps(arr))
+	c = connection.cursor()
+	query = 'SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC'
+	c.execute(query)
+	arr = c.fetchall()
+	ret = 'usernames: ['
+	for p in arr: ret += "\n" + '"' + p[0] + '",'
+	ret = ret[:-1]
+	ret += "\n" + ']'
+	return HttpResponse(ret)
 
 
 def nepal_statistics_view(request):
