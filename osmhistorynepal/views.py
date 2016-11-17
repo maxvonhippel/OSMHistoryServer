@@ -84,7 +84,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# ------------------------------------------------------------------------------------------------------------------
 	
 	endobtime = time.time()
-	print("finished ob component in " + (endobtime - starttime))
+	print "finished ob component in %f" %(endobtime - starttime)
 	
 	selection = ob.values('feature_type','feature_id').aggregate( \
 		Buildings_start=Sum( \
@@ -131,7 +131,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ start of selection statistics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	endselecttime = time.time()
-	print("finished select component in " + (endselecttime - endobtime))
+	print "finished select component in %f" %(endselecttime - endobtime)
 
 	# make our json obj
 	stat = {}
@@ -161,7 +161,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	pres = [ "first", "second", "third" ]
 	
 	endwartime = time.time()
-	print("finished war component in " + (endwartime - endselecttime))
+	print "finished war component in %f" %(endwartime - endselecttime)
 	
 	for index in range(len(pres)):
         	# Nodes
@@ -187,7 +187,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			foundways = True
 			
 	endleadertime = time.time()
-	print("finished leader component in " + (endleadertime - endwartime))
+	print "finished leader component in %f" %(endleadertime - endwartime)
 	
 	# user search nodes
 	if user != None and not foundnodes:
@@ -208,7 +208,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
 			
 	endusernodetime = time.time()
-	print("finished user nodes component in " + (endusernodetime - endleadertime))
+	print "finished user nodes component in %f" %(endusernodetime - endleadertime)
 	
 	# user search ways
 	if user != None and not foundways:
