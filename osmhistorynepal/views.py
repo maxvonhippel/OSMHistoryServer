@@ -166,6 +166,9 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	foundways = False
 	pres = [ "first", "second", "third" ]
 
+	stat['Nodes'] = {}
+	stat['Ways'] = {}
+
 	for index, word in enumerate(pres):
         	# Nodes
 		stat['Nodes'][word] = nar[index]
