@@ -10,27 +10,29 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.geos import Polygon
 from osmhistorynepal.models import Member, Feature # your appname.models, and your model names, here
 from django.db.models import Count, Q, IntegerField, Sum, Case, When
-import datetime
+from datetime import datetime
 import dateutil.parser
 from django.db import connection
 import time
 
 # debug tool for query speed analysis
 class debug_tool:
-	prints = 0
 	def __init__(self):
-		self.start = datetime.datetime.now()
-		printstatement = "debug tool instantiated: " + self.start
+		self.prints = 0
+		self.start = datetime.now()
+		printstatement = "debug tool instantiated: {:%B %d, %Y}".format(self.start)
 		print(printstatement)
 
 	def deprint(self, msg):
-		prints += 1
-		printstatement = datetime.datetime.now() + " ->> Debug statement #" + prints + "\noutput:" + msg
+		self.prints += 1
+		printstatement = "{:%B %d, %Y}".format(datetime.now())
+		printstatement += " ->> Debug statement #" + str(self.prints) + "\noutput:\n" + msg
 		print(printstatement)
 
 	def deend(self):
-		elap = datetime.datetime.now() - self.start
-		printstatement = prints + " statements printed, " + elap + " seconds elapsed since function start"
+		elap = datetime.now() - self.start
+		printstatement = "{:%B %d, %Y} --> ".format(datetime.now())
+		printstatement += str(self.prints) + " statements printed, " + str(elap) + " seconds elapsed since function start"
 		print(printstatement)
 
 
