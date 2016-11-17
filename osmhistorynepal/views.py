@@ -9,7 +9,7 @@ from django_hstore.hstore import DictionaryField
 from django.contrib.gis.geos import Point
 from django.contrib.gis.geos import Polygon
 from osmhistorynepal.models import Member, Feature # your appname.models, and your model names, here
-from django.db.models import Count, Q, IntegerField
+from django.db.models import Count, Q, IntegerField, Sum
 import datetime
 import dateutil.parser
 from django.db import connection
