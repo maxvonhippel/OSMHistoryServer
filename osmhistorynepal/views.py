@@ -81,43 +81,43 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# ------------------------------------------------------------------------------------------------------------------
 	selection = ob.values('feature_type','feature_id').aggregate( \
 		Buildings_start=Sum( \
-			Case(When(Q(timestamp__date__lte=start) & Q(tags__contains=['building']), then = 1), \
+			Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
 			default = 0, \
 			output_field=IntegerField())), \
 		Buildings_end=Sum( \
-			Case(When(Q(timestamp__date__lte=end) & Q(tags__contains=['building']), then = 1), \
+			Case(When(timestamp__date__lte=end, tags__contains=['building'], then = 1), \
 			default = 0, \
 			output_field=IntegerField())), \
 		Roads_start=Sum( \
 			Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-			Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])) & \
-			Q(timestamp__date__lte=start), then = 1), \
+			Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), \
+			timestamp__date__lte=start, then = 1), \
 			default = 0,
 			output_field=IntegerField())), \
         	Roads_end=Sum( \
-			Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-			Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])) & \
-			Q(timestamp__date__lte=end), then = 1), \
+			Case(When((Qtags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+			Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), \
+			timestamp__date__lte=end, then = 1), \
 			default = 0,
 			output_field=IntegerField())), \
         	Schools_start=Sum( \
         		Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
 			Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-			Q(tags__contains=['music_school'])) & Q(timestamp__date__lte=start), then = 1), \
+			Q(tags__contains=['music_school']), timestamp__date__lte=start, then = 1), \
 			default = 0,
 			output_field=IntegerField())), \
 		Schools_end=Sum( \
 			Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
 			Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-			Q(tags__contains=['music_school'])) & Q(timestamp__date__lte=end), then = 1), \
+			Q(tags__contains=['music_school'])), timestamp__date__lte=end, then = 1), \
 			default = 0,
 			output_field=IntegerField())), \
 		Hospitals_start=Sum( \
-			Case(When(Q(tags__contains=['hospital']) & Q(timestamp__date__lte=start), then = 1), \
+			Case(When(tags__contains=['hospital'], timestamp__date__lte=start, then = 1), \
 			default = 0, \
 			output_field=IntegerField())), \
 		Hospitals_end=Sum( \
-			Case(When(Q(tags__contains=['hospital']) & Q(timestamp__date__lte=end), then = 1), \
+			Case(When(tags__contains=['hospital'], timestamp__date__lte=end, then = 1), \
 			default = 0, \
 			output_field=IntegerField())), \
 	)
