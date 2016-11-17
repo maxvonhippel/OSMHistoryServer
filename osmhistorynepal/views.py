@@ -5,17 +5,15 @@ import json
 from django.http import JsonResponse
 from django_hstore import hstore
 from django_hstore.hstore import DictionaryField
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
 from osmhistorynepal.models import Member, Feature # your appname.models, and your model names, here
-from django.db.models import Count
-from django.contrib.gis.geos import Polygon
+from django.db.models import Count, Q, IntegerField
 import datetime
 import dateutil.parser
 from django.db import connection
-from django.db.models import Q
 
 def user_names_view(request):
-	arr = raw('SELECT DISTINCT a.user FROM populate_feature a')
+	arr = Feature.geoobjects.raw('SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC')
 	return JsonResponse(json.dumps(arr))
 
 
@@ -28,18 +26,18 @@ def nepal_statistics_view(request):
 	nstat['mappers'] = ob.values('uid').distinct().count()
 	# count the distinct buildings
 	nstat['buildings'] = ob.filter(tags__contains=['building']).values( \
-		'feature_type','feature_id').distinct().count()
+		'feature_type','feature_id').count()
 	# count the distinct roads
 	nstat['roads'] = ob.filter(Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
         	Q(tags__contains=['highway']) | Q(tags__contains=['tracktype']) \
-		).values('feature_type','feature_id').distinct().count()
+		).values('feature_type','feature_id').count()
 	# count the distinct schools
 	nstat['schools'] = ob.filter(Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
         	Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-		Q(tags__contains=['music_school'])).values('feature_type','feature_id').distinct().count()
+		Q(tags__contains=['music_school'])).values('feature_type','feature_id').count()
 	# count the distinct hospitals
 	nstat['hospitals'] = ob.filter(Q(tags__contains=['hospital']) \
-        	).values('feature_type','feature_id').distinct().count()
+        	).values('feature_type','feature_id').count()
 	# wrap it up in a json format and return it
 	return JsonResponse(nstat)
     
@@ -51,6 +49,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# define our bounding box
 	box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
 	# get all the objects
+	
+	# ---------------------------- this part needs to be replaced with raw SQL if possible ----------------------------
 	ndtmp = Feature.geoobjects.filter(Q(point__intersects=box) & Q(feature_type='node'))
 	# get the unique ids from ndtmp as strings
 	strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).order_by( \
@@ -62,34 +62,61 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# combine that with my existing list of allowed member-less features
 	ob = relsways | ndtmp
 	# for more, see: http://stackoverflow.com/questions/40585055/querying-objects-using-attribute-of-member-of-many-to-many/40602515#40602515
+	# ---------------------------- this part needs to be replaced with raw SQL if possible ----------------------------
+	
+	selection = ob.values('feature_type','feature_id').aggregate( \
+		Buildings_start=Sum( \
+			Case(When(Q(timestamp__date__lte=start) & Q(tags__contains=['building']), then = 1), \
+			default = 0, \
+			output_field=IntegerField())), \
+		Buildings_end=Sum( \
+			Case(When(Q(timestamp__date__lte=end) & Q(tags__contains=['building']), then = 1), \
+			default = 0, \
+			output_field=IntegerField())), \
+		Roads_start=Sum( \
+			Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+			Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])) & \
+			Q(timestamp__date__lte=start), then = 1), \
+			default = 0,
+			output_field=IntegerField())), \
+        	Roads_end=Sum( \
+			Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+			Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])) & \
+			Q(timestamp__date__lte=end), then = 1), \
+			default = 0,
+			output_field=IntegerField())), \
+        	Schools_start=Sum( \
+        		Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
+			Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
+			Q(tags__contains=['music_school'])) & Q(timestamp__date__lte=start), then = 1), \
+			default = 0,
+			output_field=IntegerField())), \
+		Schools_end=Sum( \
+			Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
+			Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
+			Q(tags__contains=['music_school'])) & Q(timestamp__date__lte=end), then = 1), \
+			default = 0,
+			output_field=IntegerField())), \
+		Hospitals_start=Sum( \
+			Case(When(Q(tags__contains=['hospital']) & Q(timestamp__date__lte=start), then = 1), \
+			default = 0, \
+			output_field=IntegerField())), \
+		Hospitals_end=Sum( \
+			Case(When(Q(tags__contains=['hospital']) & Q(timestamp__date__lte=end), then = 1), \
+			default = 0, \
+			output_field=IntegerField())), \
+	)
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ start of selection statistics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
 	# make our json obj
 	stat = {}
-	# selection statistics card
-	sstat = {}
-	# count the buildings as of the start time
-	bl = ob.filter(tags__contains=['building'])
-	sstat['Buildings_start'] = bl.filter(timestamp__date__lte=start).values('feature_type','feature_id').count()
-	# count the buildings as of the end time
-	sstat['Buildings_end'] = bl.filter(timestamp__date__lte=end).values('feature_type','feature_id').count()
-	# count the roads as of the start time
-	rd = ob.filter(Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-        	Q(tags__contains=['highway']) | Q(tags__contains=['tracktype']) )
-	sstat['Roads_start'] = rd.filter(timestamp__date__lte=start).values('feature_type','feature_id').count()
-	# count the roads as of the end time
-	sstat['Roads_end'] = rd.filter(timestamp__date__lte=end).values('feature_type','feature_id').count()
-	# count the schools as of the start time
-	sc = ob.filter(Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-        	Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-		Q(tags__contains=['music_school']))
-	# count the schools as of the end time
-	sstat['Schools_end'] = sc.filter(timestamp__date__lte=end).values('feature_type','feature_id').count()
-	sstat['Schools_end'] = sc.filter(timestamp__date__lte=end).values('feature_type','feature_id').count()
-	# count the hospitals as of the start time
-	hs = ob.filter(tags__contains=['hospital'])
-	sstat['Hospitals_start'] = hs.filter(timestamp__date__lte=start).values('feature_type','feature_id').count()
-	sstat['Hospitals_end'] = hs.filter(timestamp__date__lte=end).values('feature_type','feature_id').count() 
-	# wrap it into the greater structure
-	stat['Selection Statistics'] = sstat
+	
+	stat['Selection Statistics'] = selection
+	
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ end of selection statistics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ start of leaderboard statistics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
 	# leaderboards
 	# ways
 	ws = ob.filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='way')).values_list('user').annotate( \
@@ -164,5 +191,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			as count FROM ( SELECT skeys(tags) AS k, svals(tags) \
 			as v, user, timestamp FROM populate_feature) AS t \
 			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
+			
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ start of leaderboard statistics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
 	# wrap it up in a json format
 	return JsonResponse(stat)
