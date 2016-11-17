@@ -13,7 +13,9 @@ from django.db.models import Count, Q, IntegerField
 import datetime
 import dateutil.parser
 from django.db import connection
+import time
 
+# returns a javascript formatted array of usernames for all of nepal
 def user_names_view(request):
 	c = connection.cursor()
 	query = 'SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC'
@@ -26,12 +28,16 @@ def user_names_view(request):
 	return HttpResponse(ret)
 
 
+# returns a json array with metadata statistics for all of nepal for all time
 def nepal_statistics_view(request):
 	# get all the objects
 	ob = Feature.geoobjects
 	# make our json obj
 	nstat = {}
 	# count the distinct mappers
+	
+	# --- this could be significantly sped up by combining queries w/ aggregate, but it's not worth working on rn ----
+	
 	nstat['mappers'] = ob.values('uid').distinct().count()
 	# count the distinct buildings
 	nstat['buildings'] = ob.filter(tags__contains=['building']).values( \
@@ -49,8 +55,12 @@ def nepal_statistics_view(request):
         	).values('feature_type','feature_id').count()
 	# wrap it up in a json format and return it
 	return JsonResponse(nstat)
-    
+ 
+# returns a json array with data on a specific area of nepal in a specific time range, optionally with extra info for a specific user   
 def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
+	
+	starttime = time.time()
+	
 	# parse range
 	sstart,send = range.split(",") # 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
 	start = dateutil.parser.parse(sstart)
@@ -71,7 +81,10 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# combine that with my existing list of allowed member-less features
 	ob = relsways | ndtmp
 	# for more, see: http://stackoverflow.com/questions/40585055/querying-objects-using-attribute-of-member-of-many-to-many/40602515#40602515
-	# ---------------------------- this part needs to be replaced with raw SQL if possible ----------------------------
+	# ------------------------------------------------------------------------------------------------------------------
+	
+	endobtime = time.time()
+	print("finished ob component in " + (endobtime - starttime))
 	
 	selection = ob.values('feature_type','feature_id').aggregate( \
 		Buildings_start=Sum( \
@@ -117,6 +130,9 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	)
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ start of selection statistics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
+	endselecttime = time.time()
+	print("finished select component in " + (endselecttime - endobtime))
+
 	# make our json obj
 	stat = {}
 	
@@ -143,6 +159,10 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	foundnodes = False
 	foundways = False
 	pres = [ "first", "second", "third" ]
+	
+	endwartime = time.time()
+	print("finished war component in " + (endwartime - endselecttime))
+	
 	for index in range(len(pres)):
         	# Nodes
 		stat['Nodes'][pres[index]] = nar[index]
@@ -165,6 +185,10 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		if user == stat['Ways'][pres[index]]['OSM Username']:
 			stat['Ways'][pres[index]]['highlighted'] = True
 			foundways = True
+			
+	endleadertime = time.time()
+	print("finished leader component in " + (endleadertime - endwartime))
+	
 	# user search nodes
 	if user != None and not foundnodes:
         	stat['Nodes']['user']['OSM Username'] = user
@@ -182,6 +206,10 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			as count FROM ( SELECT skeys(tags) AS k, svals(tags) \
 			as v, user, timestamp FROM populate_feature) AS t \
 			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
+			
+	endusernodetime = time.time()
+	print("finished user nodes component in " + (endusernodetime - endleadertime))
+	
 	# user search ways
 	if user != None and not foundways:
         	stat['Ways']['user']['OSM Username'] = user
@@ -200,7 +228,11 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			as count FROM ( SELECT skeys(tags) AS k, svals(tags) \
 			as v, user, timestamp FROM populate_feature) AS t \
 			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
-			
+	
+	enduserwaytime = time.time()
+	print("finished user nodes component in " + (enduserwaytime - endusernodetime))	
+	
+	print("finished total view in " + (enduserwaytime - starttime))		
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ start of leaderboard statistics ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	# wrap it up in a json format
