@@ -59,7 +59,7 @@ def nepal_statistics_view(request):
 # returns a json array with data on a specific area of nepal in a specific time range, optionally with extra info for a specific user   
 def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	
-	starttime = time.time()
+	starttime = time.time() # debug
 	
 	# parse range
 	sstart,send = range.split(",") # 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
@@ -68,24 +68,17 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# define our bounding box
 	box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
 	# get all the objects
-	
-	# ---------------------------- this part needs to be replaced with raw SQL if possible ----------------------------
 	ndtmp = Feature.geoobjects.filter(Q(point__intersects=box) & Q(feature_type='node'))
 	# get the unique ids from ndtmp as strings
-	strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).order_by( \
-		'-feature_id_str').values_list('feature_id_str',flat=True).distinct()	
-	# find all members whose ref values can be found in stride
-	okmems = Member.objects.filter(ref__in=strids)
-	# find all features containing one or more members in the accepted members list
-	relsways = Feature.geoobjects.filter(members__in=okmems)
-	# combine that with my existing list of allowed member-less features
-	ob = relsways | ndtmp
-	# for more, see: http://stackoverflow.com/questions/40585055/querying-objects-using-attribute-of-member-of-many-to-many/40602515#40602515
-	# ------------------------------------------------------------------------------------------------------------------
+	strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).values_list('feature_id_str',flat=True).distinct()	
+	# combine all features containing >=1 ok members with my existing list of ok nodes
+	ob = Feature.geoobjects.filter(members__ref__in=strids) | ndtmp
+	# for more, see: 
+	# http://stackoverflow.com/questions/40585055/querying-objects-using-attribute-of-member-of-many-to-many/40602515#40602515
 	
 	endobtime = time.time()
-	print "finished ob component in %f" %(endobtime - starttime)
-	
+	print "finished ob component in %f" %(endobtime - starttime) # debug
+	# ------------------------------------------------------------------------------------------------------------------
 	selection = ob.values('feature_type','feature_id').aggregate( \
 		Buildings_start=Sum( \
 			Case(When(Q(timestamp__date__lte=start) & Q(tags__contains=['building']), then = 1), \
@@ -190,7 +183,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	print "finished leader component in %f" %(endleadertime - endwartime)
 	
 	# user search nodes
-	if user != None and not foundnodes:
+	if user != "" and not foundnodes:
         	stat['Nodes']['user']['OSM Username'] = user
 		foundnr = False
 		for index, item in enumerate(ns):
@@ -211,7 +204,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	print "finished user nodes component in %f" %(endusernodetime - endleadertime)
 	
 	# user search ways
-	if user != None and not foundways:
+	if user != "" and not foundways:
         	stat['Ways']['user']['OSM Username'] = user
 		foundwr = False
 		for index, item in enumerate(ws):
