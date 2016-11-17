@@ -22,11 +22,13 @@ class debug_tool:
 		self.start = time.now()
 		printstatement = "debug tool instantiated: " + self.start
 		print(printstatement)
-	def print(self, msg)
+
+	def print(self, msg):
 		prints += 1
 		printstatement = time.now() + " ->> Debug statement #" + prints + "\noutput:" + msg
 		print(printstatement)
-	def end(self)
+
+	def end(self):
 		elap = time.now() - self.start
 		printstatement = prints + " statements printed, " + elap + " seconds elapsed since function start"
 		print(printstatement)
