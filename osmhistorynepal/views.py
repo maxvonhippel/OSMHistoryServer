@@ -103,7 +103,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
         	Schools_start=Sum( \
         		Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
 			Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-			Q(tags__contains=['music_school']), timestamp__date__lte=start, then = 1), \
+			Q(tags__contains=['music_school'])), timestamp__date__lte=start, then = 1), \
 			default = 0,
 			output_field=IntegerField())), \
 		Schools_end=Sum( \
