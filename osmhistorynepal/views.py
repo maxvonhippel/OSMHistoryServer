@@ -5,7 +5,8 @@ import json
 from django.http import JsonResponse
 from django_hstore import hstore
 from django_hstore.hstore import DictionaryField
-from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Polygon
 from osmhistorynepal.models import Member, Feature # your appname.models, and your model names, here
 from django.db.models import Count, Q, IntegerField
 import datetime

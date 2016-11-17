@@ -1,0 +1,7 @@
+example all country stats:
+{"roads": 2512, "mappers": 9465, "buildings": 22560, "schools": 1, "hospitals": 0}
+
+example selection stats:
+{'Roads_end': 1984, 'Roads_start': 1984, 'Hospitals_end': 0, 'Schools_start': 0, 'Buildings_end': 0, 'Buildings_start': 0, 'Schools_end': 0, 'Hospitals_start': 0}
+
+
