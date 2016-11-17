@@ -13,7 +13,7 @@ import dateutil.parser
 from django.db import connection
 
 def user_names_view(request):
-	arr = Feature.geoobjects.raw('SELECT DISTINCT a.user FROM osmhistorynepal_feature a')
+	arr = Feature.geoobjects.raw('SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC')
 	return JsonResponse(json.dumps(arr))
 
 
