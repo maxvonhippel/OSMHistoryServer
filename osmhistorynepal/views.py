@@ -19,17 +19,17 @@ import time
 class debug_tool:
 	prints = 0
 	def __init__(self):
-		self.start = time.now()
+		self.start = datetime.datetime.now()
 		printstatement = "debug tool instantiated: " + self.start
 		print(printstatement)
 
 	def deprint(self, msg):
 		prints += 1
-		printstatement = time.now() + " ->> Debug statement #" + prints + "\noutput:" + msg
+		printstatement = datetime.datetime.now() + " ->> Debug statement #" + prints + "\noutput:" + msg
 		print(printstatement)
 
 	def deend(self):
-		elap = time.now() - self.start
+		elap = datetime.datetime.now() - self.start
 		printstatement = prints + " statements printed, " + elap + " seconds elapsed since function start"
 		print(printstatement)
 
