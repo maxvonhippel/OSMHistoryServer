@@ -23,12 +23,12 @@ class debug_tool:
 		printstatement = "debug tool instantiated: " + self.start
 		print(printstatement)
 
-	def print(self, msg):
+	def deprint(self, msg):
 		prints += 1
 		printstatement = time.now() + " ->> Debug statement #" + prints + "\noutput:" + msg
 		print(printstatement)
 
-	def end(self):
+	def deend(self):
 		elap = time.now() - self.start
 		printstatement = prints + " statements printed, " + elap + " seconds elapsed since function start"
 		print(printstatement)
@@ -137,7 +137,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			output_field=IntegerField())) \
 	)
 
-	c.print(selection) # DEBUG
+	d.deprint(selection) # DEBUG
 
 	# make our json obj
 	stat = {}
@@ -152,7 +152,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
         	[ ("OSM Username",ws[1][0]), ("Ways", ws[1][1]), ("Rank","second") ], \
 		[ ("OSM Username", ws[2][0]), ("Ways", ws[1][1]), ("Rank","third")] ]
 
-	c.print(war)	# debug
+	d.deprint(war)	# debug
 
 	# nodes
 	ns = ob.filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).values_list('user').annotate( \
@@ -161,7 +161,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
         	[ ("OSM Username", ns[1][0]), ("Nodes", ns[1][1]), ("Rank", "second") ], \
 		[ ("OSM Username", ns[2][0]), ("Noses", ns[1][1]), ("Rank", "third")] ]
 
-	c.print(nar)	# DEBUG
+	d.deprint(nar)	# DEBUG
 
 	# put them in our stat object and find most freq. edited POI
 	foundnodes = False
@@ -184,7 +184,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			stat['Nodes'][word]['highlighted'] = True
 			foundnodes = True
 
-		c.print(stat['Nodes'][word])	# DEBUG
+		d.deprint(stat['Nodes'][word])	# DEBUG
 
 		# Ways
 		stat['Ways'][word] = war[index]
@@ -197,7 +197,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			stat['Ways'][word]['highlighted'] = True
 			foundways = True
 
-		c.print(stat['Ways'][word])	# DEBUG
+		d.deprint(stat['Ways'][word])	# DEBUG
 
 	# user search nodes
 	if user != "" and not foundnodes:
@@ -217,7 +217,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			as v, user, timestamp FROM populate_feature) AS t \
 			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
 
-		c.print(stat['Nodes']['user'])	# DEBUG
+		d.deprint(stat['Nodes']['user'])	# DEBUG
 
 	# user search ways
 	if user != "" and not foundways:
@@ -238,10 +238,10 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			as v, user, timestamp FROM populate_feature) AS t \
 			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
 
-		c.print(stat['Ways']['user'])	# DEBUG
+		d.deprint(stat['Ways']['user'])	# DEBUG
 
-	c.print(stat)	# DEBUG
-	c.end()
+	d.deprint(stat)	# DEBUG
+	d.deend()
 
 	# wrap it up in a json format
 	return JsonResponse(stat)
