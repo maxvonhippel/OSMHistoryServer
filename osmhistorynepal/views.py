@@ -96,11 +96,13 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# get the unique ids from ndtmp as strings
 	strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).values_list('feature_id_str',flat=True).distinct()
 	# combine all features containing >=1 ok members with my existing list of ok nodes
-	ob = Feature.geoobjects.filter(members__ref__in=strids) | ndtmp
+	ob = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Feature.geoobjects.filter(members__ref__in=strids))) | ndtmp
 	# for more, see:
 	# http://stackoverflow.com/questions/40585055/querying-objects-using-attribute-of-member-of-many-to-many/40602515#40602515
 
-	selection = ob.filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
+	selection = ob.filter(timestamp__lte=end)\
+		.values('feature_type','feature_id')\
+		.aggregate( \
 		Buildings_start = Sum( \
 			Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
 			default = 0, \
@@ -174,6 +176,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	for index, word in enumerate(pres):
 
         	# Nodes
+        	stat['Nodes'][word] = {}
 		stat['Nodes'][word]["OSM Username"] = ns[index][0]
 		stat['Nodes'][word]["Nodes"] = ns[index][1]
 		stat['Nodes'][word]["Rank"] = index
@@ -187,9 +190,10 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			stat['Nodes'][word]['highlighted'] = 1
 			foundnodes = True
 
-		d.deprint(stat['Nodes'][word])	# DEBUG
+		d.deprint(json.dumps(stat['Nodes'][word]))	# DEBUG
 
 		# Ways
+		stat['Ways'][word] = {}
 		stat['Ways'][word]['OSM Username'] = ws[index][0]
 		stat['Ways'][word]['Ways'] = ws[index][1]
 		stat['Ways'][word]['Rank'] = index
@@ -202,7 +206,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			stat['Ways'][word]['Highlighted'] = 1
 			foundways = True
 
-		d.deprint(stat['Ways'][word])	# DEBUG
+		d.deprint(json.dumps(stat['Ways'][word]))	# DEBUG
 
 	# user search nodes
 	if user != "" and not foundnodes:
