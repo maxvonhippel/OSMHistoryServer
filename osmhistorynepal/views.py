@@ -21,14 +21,19 @@ class debug_tool:
 	def __init__(self):
 		self.prints = 0
 		self.start = datetime.now()
+		self.last = self.start
 		printstatement = "debug tool instantiated: {:%Y-%m-%d %H:%M:%S.%f}".format(self.start)
 		print(printstatement)
 	# print the current timestamp, the number of prints done from debug, and a message
 	def deprint(self, msg):
 		self.prints += 1
-		printstatement = "{:%Y-%m-%d %H:%M:%S.%f}".format(datetime.now())
+		now = datetime.now()
+		printstatement = "{:%Y-%m-%d %H:%M:%S.%f}".format(now)
+		elap = now - self.last
+		printstatement += "\nelapsed since last: " + str(elap) + "\n"
 		printstatement += " ->> Debug statement #" + str(self.prints) + "\noutput:\n" + msg
 		print(printstatement)
+		self.last = now
 	# print the number of prints from debug, and a message
 	def deend(self):
 		elap = datetime.now() - self.start
