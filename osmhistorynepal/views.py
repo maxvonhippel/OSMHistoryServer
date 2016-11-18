@@ -100,6 +100,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# for more, see:
 	# http://stackoverflow.com/questions/40585055/querying-objects-using-attribute-of-member-of-many-to-many/40602515#40602515
 
+	d.deprint("now time for selection")
+
 	selection = ob.filter(timestamp__lte=end)\
 		.values('feature_type','feature_id')\
 		.aggregate( \
