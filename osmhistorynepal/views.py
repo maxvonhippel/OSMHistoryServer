@@ -43,12 +43,22 @@ class debug_tool:
 		print(printstatement)
 
 # http://stackoverflow.com/a/20872750/1586231
-# finds the most common word in a list
-def Most_Common(lst):
-    if not lst:
-    	return ""
-    data = Counter(lst)
-    return data.most_common(1)[0][0]
+# finds the most common POI in a query set from the tags
+def Most_Common(tuples):
+	if not tuples:
+		return ""
+	lst = []
+	for tuple in tuples:
+		try:
+			str = tuple[0][0].get('amenity')
+			if str and str != "":
+				lst.append(str)
+		except:
+			pass
+	if not lst:
+    		return ""
+    	data = Counter(lst)
+    	return data.most_common(1)[0][0]
 
 
 # returns a javascript formatted array of usernames for all of nepal
@@ -205,16 +215,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			Q(feature_type='node') & \
 			Q(user=ns[index][0]) & \
 			Q(timestamp__date__range=[start,end]))
-		nalues = []
-		for tuple in nuples:
-			try:
-				str = tuple[0][0].get('amenity')
-				if str:
-					nalues.append(str)
-			except Exception, e:
-				pass
 
-		stat['Nodes'][word]['Most Frequently Edited POI'] = Most_Common(nalues)
+		stat['Nodes'][word]['Most Frequently Edited POI'] = Most_Common(nuples)
 
 		if user == stat['Nodes'][word]['OSM Username']:
 			stat['Nodes'][word]['highlighted'] = 1
@@ -234,16 +236,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			Q(feature_type='way') & \
 			Q(user=ns[index][0]) & \
 			Q(timestamp__date__range=[start,end]))
-		walues = []
-		for tuple in wuples:
-			try:
-				str = tuple[0][0].get('amenity')
-				if str:
-					walues.append(str)
-			except Exception, e:
-				pass
 
-		stat['Ways'][word]['Most Frequently Edited POI'] = Most_Common(walues)
+		stat['Ways'][word]['Most Frequently Edited POI'] = Most_Common(wuples)
 
 		if user == stat['Ways'][word]['OSM Username']:
 			stat['Ways'][word]['Highlighted'] = 1
@@ -270,16 +264,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 					Q(feature_type='node') & \
 					Q(user=user) & \
 					Q(timestamp__date__range=[start,end]))
-				values = []
-				for tuple in unuples:
-					try:
-						str = tuple[0][0].get('amenity')
-						if str:
-							values.append(str)
-					except Exception, e:
-						pass
 
-				stat['Nodes']['fifth']['Most Frequently Edited POI'] = Most_Common(values)
+				stat['Nodes']['fifth']['Most Frequently Edited POI'] = Most_Common(unuples)
 
 				break
 
@@ -302,16 +288,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 					Q(feature_type='way') & \
 					Q(user=user) & \
 					Q(timestamp__date__range=[start,end]))
-				values = []
-				for tuple in uwuples:
-					try:
-						str = tuple[0][0].get('amenity')
-						if str:
-							values.append(str)
-					except Exception, e:
-						pass
 
-				stat['Ways']['fifth']['Most Frequently Edited POI'] = Most_Common(values)
+				stat['Ways']['fifth']['Most Frequently Edited POI'] = Most_Common(uwuples)
 
 				break
 
