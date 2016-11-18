@@ -146,7 +146,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			output_field=IntegerField())) \
 	)
 
-	d.deprint(selection) # DEBUG
+	d.deprint(json.dumps(selection)) # DEBUG
 
 	# make our json obj
 	stat = {}
@@ -240,7 +240,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 					WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
 				break
 
-	d.deprint(stat)	# DEBUG
+	d.deprint(json.dumps(stat))	# DEBUG
 	d.deend()
 
 	# wrap it up in a json format
