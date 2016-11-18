@@ -45,6 +45,8 @@ class debug_tool:
 # http://stackoverflow.com/a/20872750/1586231
 # finds the most common word in a list
 def Most_Common(lst):
+    if not lst:
+    	return ""
     data = Counter(lst)
     return data.most_common(1)[0][0]
 
