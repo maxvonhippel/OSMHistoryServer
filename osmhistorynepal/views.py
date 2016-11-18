@@ -17,18 +17,19 @@ import time
 
 # debug tool for query speed analysis
 class debug_tool:
+	# initialize a new debug tool
 	def __init__(self):
 		self.prints = 0
 		self.start = datetime.now()
 		printstatement = "debug tool instantiated: {:%B %d, %Y}".format(self.start)
 		print(printstatement)
-
+	# print the current timestamp, the number of prints done from debug, and a message
 	def deprint(self, msg):
 		self.prints += 1
 		printstatement = "{:%B %d, %Y}".format(datetime.now())
 		printstatement += " ->> Debug statement #" + str(self.prints) + "\noutput:\n" + msg
 		print(printstatement)
-
+	# print the number of prints from debug, and a message
 	def deend(self):
 		elap = datetime.now() - self.start
 		printstatement = "{:%B %d, %Y} --> ".format(datetime.now())
@@ -55,25 +56,27 @@ def nepal_statistics_view(request):
 	ob = Feature.geoobjects
 	# make our json obj
 	nstat = {}
+	# cound the buildings, roads, schools, and hospitals
+	nstat = ob.values('feature_type','feature_id').aggregate( \
+		Building = Sum(Case(When(tags__contains=['building'], then = 1), \
+			default = 0, \
+			output_field = IntegerField())), \
+		Roads = Sum(Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+			Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), then = 1), \
+			default = 0, \
+			output_field = IntegerField())), \
+		Education = Sum(Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
+        		Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
+			Q(tags__contains=['music_school'])), then = 1), \
+			default = 0, \
+			output_field = IntegerField())), \
+		Health = Sum(Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
+			Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
+			Q(tags__contains=['surgery'])), then = 1),
+			default = 0,
+			output_field = IntegerField())) )
 	# count the distinct mappers
-
-	# --- this could be significantly sped up by combining queries w/ aggregate, but it's not worth working on rn ----
-
 	nstat['mappers'] = ob.values('uid').distinct().count()
-	# count the distinct buildings
-	nstat['buildings'] = ob.filter(tags__contains=['building']).values( \
-		'feature_type','feature_id').count()
-	# count the distinct roads
-	nstat['roads'] = ob.filter(Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-        	Q(tags__contains=['highway']) | Q(tags__contains=['tracktype']) \
-		).values('feature_type','feature_id').count()
-	# count the distinct schools
-	nstat['schools'] = ob.filter(Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-        	Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-		Q(tags__contains=['music_school'])).values('feature_type','feature_id').count()
-	# count the distinct hospitals
-	nstat['hospitals'] = ob.filter(Q(tags__contains=['hospital']) \
-        	).values('feature_type','feature_id').count()
 	# wrap it up in a json format and return it
 	return JsonResponse(nstat)
 
