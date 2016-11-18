@@ -14,6 +14,7 @@ from datetime import datetime
 import dateutil.parser
 from django.db import connection
 import time
+from collections import Counter
 
 # debug tool for query speed analysis
 class debug_tool:
@@ -40,6 +41,12 @@ class debug_tool:
 		printstatement = "{:%Y-%m-%d %H:%M:%S.%f} --> ".format(datetime.now())
 		printstatement += str(self.prints) + " statements printed, " + str(elap) + " seconds elapsed since function start"
 		print(printstatement)
+
+# http://stackoverflow.com/a/20872750/1586231
+# finds the most common word in a list
+def Most_Common(lst):
+    data = Counter(lst)
+    return data.most_common(1)[0][0]
 
 
 # returns a javascript formatted array of usernames for all of nepal
@@ -153,12 +160,12 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			output_field=IntegerField())) \
 	)
 
-	d.deprint(json.dumps(selection)) # DEBUG
-
 	# make our json obj
 	stat = {}
 
 	stat['Selection Statistics'] = selection
+
+	d.deprint(json.dumps(stat['Selection Statistics'])) # DEBUG
 
 	# leaderboards
 	# ways
@@ -180,6 +187,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 	d.deprint("going to enumerate over leaderboards")
 
+	c = connection.cursor()
+
 	for index, word in enumerate(pres):
 
         	# Nodes
@@ -187,12 +196,24 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		stat['Nodes'][word]["OSM Username"] = ns[index][0]
 		stat['Nodes'][word]["Nodes"] = ns[index][1]
 		stat['Nodes'][word]["Rank"] = index
-		stat['Nodes'][word]['Most Frequently Edited POI'] = ob.filter(Q(user=ns[index][0]) & \
-			Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).raw('''SELECT k, v, count(*) \
-			as count FROM ( SELECT skeys(tags) AS k, svals(tags) \
-			as v, user, timestamp FROM populate_feature) AS t \
-			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
-		# http://stackoverflow.com/questions/12522966/django-orm-hstore-counting-unique-values-of-a-key
+
+		# poi
+		nuples = ob.values_list('tags').filter( \
+			Q(tags__contains=['amenity']) & \
+			Q(feature_type='node') & \
+			Q(user=ns[index][0]) & \
+			Q(timestamp__date__range=[start,end]))
+		nalues = []
+		for tuple in nuples:
+			try:
+				str = tuple[0][0].get('amenity')
+				if str:
+					nalues.append(str)
+			except Exception, e:
+				pass
+
+		stat['Nodes'][word]['Most Frequently Edited POI'] = Most_Common(nalues)
+
 		if user == stat['Nodes'][word]['OSM Username']:
 			stat['Nodes'][word]['highlighted'] = 1
 			foundnodes = True
@@ -204,11 +225,24 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		stat['Ways'][word]['OSM Username'] = ws[index][0]
 		stat['Ways'][word]['Ways'] = ws[index][1]
 		stat['Ways'][word]['Rank'] = index
-		stat['Ways'][word]['Most Frequently Edited POI'] = ob.filter(Q(user=ws[index][0]) & \
-			Q(timestamp__date__range=[start,end]) & Q(feature_type='way')).raw('''SELECT k, v, count(*) \
-			as count FROM ( SELECT skeys(tags) AS k, svals(tags) \
-			as v, user, timestamp FROM populate_feature) AS t \
-			WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
+
+		# poi
+		wuples = ob.values_list('tags').filter( \
+			Q(tags__contains=['amenity']) & \
+			Q(feature_type='way') & \
+			Q(user=ns[index][0]) & \
+			Q(timestamp__date__range=[start,end]))
+		walues = []
+		for tuple in wuples:
+			try:
+				str = tuple[0][0].get('amenity')
+				if str:
+					walues.append(str)
+			except Exception, e:
+				pass
+
+		stat['Ways'][word]['Most Frequently Edited POI'] = Most_Common(walues)
+
 		if user == stat['Ways'][word]['OSM Username']:
 			stat['Ways'][word]['Highlighted'] = 1
 			foundways = True
@@ -227,11 +261,23 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 				stat['Nodes']['fifth']['Rank'] = index
 				stat['Nodes']['fifth']['OSM Username'] = user
 				stat['Nodes']['fifth']['Highlighted'] = 1
-				stat['Nodes']['fifth']['Most Frequently edited POI'] = ob.filter(Q(user=user) & \
-					Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).raw('''SELECT k, v, count(*) \
-					as count FROM ( SELECT skeys(tags) AS k, svals(tags) \
-					as v, user, timestamp FROM populate_feature) AS t \
-					WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
+
+				# poi
+				unuples = ob.values_list('tags').filter( \
+					Q(tags__contains=['amenity']) & \
+					Q(feature_type='node') & \
+					Q(user=user) & \
+					Q(timestamp__date__range=[start,end]))
+				values = []
+				for tuple in unuples:
+					try:
+						str = tuple[0][0].get('amenity')
+						if str:
+							values.append(str)
+					except Exception, e:
+						pass
+
+				stat['Nodes']['fifth']['Most Frequently Edited POI'] = Most_Common(values)
 
 				break
 
@@ -247,12 +293,24 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 				stat['Ways']['fifth']['rank'] = index
 				stat['Ways']['fifth']['OSM Username'] = user
 				stat['Ways']['fifth']['Highlighted'] = 1
-				stat['Ways']['fifth']['Most Frequently edited POI'] = ob.filter(Q(user=user) & \
-					Q(timestamp__date__range=[start,end]) & \
-					Q(feature_type='way')).raw('''SELECT k, v, count(*) \
-					as count FROM ( SELECT skeys(tags) AS k, svals(tags) \
-					as v, user, timestamp FROM populate_feature) AS t \
-					WHERE k='amenity' GROUP BY k, v ORDER BY count DESC LIMIT 1''')
+
+				# poi
+				uwuples = ob.values_list('tags').filter( \
+					Q(tags__contains=['amenity']) & \
+					Q(feature_type='way') & \
+					Q(user=user) & \
+					Q(timestamp__date__range=[start,end]))
+				values = []
+				for tuple in uwuples:
+					try:
+						str = tuple[0][0].get('amenity')
+						if str:
+							values.append(str)
+					except Exception, e:
+						pass
+
+				stat['Ways']['fifth']['Most Frequently Edited POI'] = Most_Common(values)
+
 				break
 
 	d.deprint(json.dumps(stat))	# DEBUG
