@@ -221,7 +221,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		nuples = ob.only('tags','feature_type','timestamp','user').filter( \
 			(~Q(tags={})) & \
 			Q(feature_type='node') & \
-			Q(user=wayuser) & \
+			Q(user=nodeuser) & \
 			Q(timestamp__date__range=[start,end])).values_list('tags')
 
 		stat['Nodes'][word]['Most Frequently Edited POI'] = Most_Common(nuples)
