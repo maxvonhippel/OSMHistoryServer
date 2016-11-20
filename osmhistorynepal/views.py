@@ -53,22 +53,21 @@ class debug_tool:
 # finds the most common POI in a query set from the tags
 def Most_Common(tuples):
 
-	if not tuples:
-		return ""
+	if not tuples: return ""
 
 	lst = []
 	POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
 
-	(tupl, key) for tupl in tuples for key in POIKEYS:
-		try:
-			str = tupl[0].get(key)
-			if str and str != "" and str != "primary" and not str.isdigit():
-				lst.append(str)
-		except:
-			pass
+	for tupl in tuples:
+		for key in POIKEYS:
+			try:
+				str = tupl[0].get(key)
+				if str and str != "" and str != "primary" and not str.isdigit():
+					lst.append(str)
+			except:
+				pass
 
-	if not lst:
-    		return ""
+	if not lst: return ""
 
     	return Counter(lst).most_common(1)[0][0]
 
