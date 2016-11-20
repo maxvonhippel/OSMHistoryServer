@@ -59,14 +59,10 @@ def Most_Common(tuples):
 	POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
 
 	for tupl in tuples:
-		for key in POIKEYS:
-			try:
-				str = tupl[0].get(key)
-				if str and str != "" and str != "primary" and not str.isdigit():
+		if tupl[0][0] in POIKEYS:
+			str = tupl[0][1]
+			if str and str != "" and str != "primary" and not str.isdigit():
 					lst.append(str)
-			except:
-				pass
-
 	if not lst: return ""
 
     	return Counter(lst).most_common(1)[0][0]
