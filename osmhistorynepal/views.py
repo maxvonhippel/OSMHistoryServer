@@ -134,7 +134,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 	d.deprint("now time for selection")
 
-	selection = ob.filter(timestamp__lte=end).values('feature_type','feature_id').only('tags', 'timestamp').aggregate( \
+	selection = ob.filter(timestamp__lte=end).only('tags', 'timestamp', 'feature_type', 'feature_id' \
+		).values('feature_type','feature_id').aggregate( \
 		Buildings_start = Sum( \
 			Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
 			default = 0, \
