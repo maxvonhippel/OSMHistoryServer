@@ -59,20 +59,20 @@ def Most_Common(tuples):
 	lst = []
 	POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
 
-	for tuple in tuples:
-		for key in POIKEYS:
-			try:
-				str = tuple[0].get(key)
-				if str and str != "" and str != "primary" and not str.isdigit():
-					lst.append(str)
-			except:
-				pass
+	tuple, key for tuple in tuples for key in POIKEYS:
+		try:
+			str = tuple[0].get(key)
+			if str and str != "" and str != "primary" and not str.isdigit():
+				lst.append(str)
+		except:
+			pass
 
 	if not lst:
     		return ""
 
     	return Counter(lst).most_common(1)[0][0]
 
+# ---------------------------------- ACTUAL VIEWS ---------------------------------------------
 
 # returns a javascript formatted array of usernames for all of nepal
 def user_names_view(request):
