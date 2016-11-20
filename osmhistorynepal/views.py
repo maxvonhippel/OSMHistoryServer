@@ -21,7 +21,7 @@ POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'b
 # http://stackoverflow.com/a/37471918/1586231
 def diff(t_a, t_b):
     t_diff = relativedelta(t_a, t_b)
-    return '{h}h {m}m {s}s {ss}ms'.format(h=t_diff.hours, m=t_diff.minutes, s=t_diff.seconds, ss=t_diff.milliseconds)
+    return '{h}h {m}m {s}s {ss}ms'.format(h=t_diff.hours, m=t_diff.minutes, s=t_diff.seconds, ss=t_diff.microseconds)
 
 # debug tool for query speed analysis
 class debug_tool:
