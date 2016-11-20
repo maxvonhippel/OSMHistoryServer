@@ -21,21 +21,21 @@ POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'b
 # http://stackoverflow.com/a/37471918/1586231
 def diff(t_a, t_b):
     t_diff = relativedelta(t_a, t_b)
-    return '{h}h {m}m {s}s'.format(h=t_diff.hours, m=t_diff.minutes, s=t_diff.seconds)
+    return '{h}h {m}m {s}s {ss}ms'.format(h=t_diff.hours, m=t_diff.minutes, s=t_diff.seconds, ss=t_diff.milliseconds)
 
 # debug tool for query speed analysis
 class debug_tool:
 	# initialize a new debug tool
 	def __init__(self):
 		self.prints = 0
-		self.start = datetime.now()
+		self.start = datetime.now().isoformat()
 		self.last = self.start
 		printstatement = "debug tool instantiated: {:%Y-%m-%d %H:%M:%S.%f}".format(self.start)
 		print(printstatement)
 	# print the current timestamp, the number of prints done from debug, and a message
 	def deprint(self, msg):
 		self.prints += 1
-		now = datetime.now()
+		now = datetime.now().isoformat()
 		printstatement = "{:%Y-%m-%d %H:%M:%S.%f}".format(now)
 		printstatement += "\nelapsed since last: " + diff(self.last, now) + "\n"
 		printstatement += " ->> Debug statement #" + str(self.prints) + "\noutput:\n" + msg + "\n"
@@ -43,8 +43,10 @@ class debug_tool:
 		self.last = now
 	# print the number of prints from debug, and a message
 	def deend(self):
-		printstatement = "{:%Y-%m-%d %H:%M:%S.%f} --> ".format(datetime.now())
-		printstatement += str(self.prints) + " statements printed, " + diff(self.last, datetime.now()) + " seconds elapsed since function start"
+		now = datetime.now().isoformat()
+		printstatement = "{:%Y-%m-%d %H:%M:%S.%f} --> ".format(now)
+		printstatement += str(self.prints) + " statements printed, " + diff(self.last, now) + " seconds elapsed since function start"
+		self.last = now
 		print(printstatement)
 
 # http://stackoverflow.com/a/20872750/1586231
@@ -56,7 +58,7 @@ def Most_Common(tuples):
 	for tuple in tuples:
 		for key in POIKEYS:
 			try:
-				str = tuple[0][0].get(key)
+				str = tuple[0].get(key)
 				if str and str != "":
 					lst.append(str)
 			except:
@@ -218,6 +220,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 		# poi
 		nuples = ob.values_list('tags').filter( \
+			(~Q(tags={})) & \
 			Q(feature_type='node') & \
 			Q(user=ns[index][0]) & \
 			Q(timestamp__date__range=[start,end]))
@@ -238,6 +241,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 		# poi
 		wuples = ob.values_list('tags').filter( \
+			(~Q(tags={})) & \
 			Q(feature_type='way') & \
 			Q(user=ns[index][0]) & \
 			Q(timestamp__date__range=[start,end]))
@@ -265,6 +269,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 				# poi
 				unuples = ob.values_list('tags').filter( \
+					(~Q(tags={})) & \
 					Q(feature_type='node') & \
 					Q(user=user) & \
 					Q(timestamp__date__range=[start,end]))
@@ -288,6 +293,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 				# poi
 				uwuples = ob.values_list('tags').filter( \
+					(~Q(tags={})) & \
 					Q(feature_type='way') & \
 					Q(user=user) & \
 					Q(timestamp__date__range=[start,end]))
