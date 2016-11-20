@@ -15,6 +15,8 @@ from django.db import connection
 import time
 from collections import Counter
 
+POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
+
 # diff print for time stamps
 # http://stackoverflow.com/a/37471918/1586231
 def diff(t_a, t_b):
@@ -52,12 +54,13 @@ def Most_Common(tuples):
 		return ""
 	lst = []
 	for tuple in tuples:
-		try:
-			str = tuple[0][0].get('amenity')
-			if str and str != "":
-				lst.append(str)
-		except:
-			pass
+		for key in POIKEYS:
+			try:
+				str = tuple[0][0].get(key)
+				if str and str != "":
+					lst.append(str)
+			except:
+				pass
 	if not lst:
     		return ""
     	data = Counter(lst)
@@ -211,11 +214,10 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
         	stat['Nodes'][word] = {}
 		stat['Nodes'][word]["OSM Username"] = ns[index][0]
 		stat['Nodes'][word]["Nodes"] = ns[index][1]
-		stat['Nodes'][word]["Rank"] = index
+		stat['Nodes'][word]["Rank"] = index + 1
 
 		# poi
 		nuples = ob.values_list('tags').filter( \
-			Q(tags__contains=['amenity']) & \
 			Q(feature_type='node') & \
 			Q(user=ns[index][0]) & \
 			Q(timestamp__date__range=[start,end]))
@@ -232,11 +234,10 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		stat['Ways'][word] = {}
 		stat['Ways'][word]['OSM Username'] = ws[index][0]
 		stat['Ways'][word]['Ways'] = ws[index][1]
-		stat['Ways'][word]['Rank'] = index
+		stat['Ways'][word]['Rank'] = index + 1
 
 		# poi
 		wuples = ob.values_list('tags').filter( \
-			Q(tags__contains=['amenity']) & \
 			Q(feature_type='way') & \
 			Q(user=ns[index][0]) & \
 			Q(timestamp__date__range=[start,end]))
@@ -256,15 +257,14 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 		foundnr = False
 		for index, item in enumerate(ns):
-			if item[index][0] == user:
+			if item[0] == user:
 				stat['Nodes']['fifth'] = {}
-				stat['Nodes']['fifth']['Rank'] = index
+				stat['Nodes']['fifth']['Rank'] = index + 1
 				stat['Nodes']['fifth']['OSM Username'] = user
 				stat['Nodes']['fifth']['Highlighted'] = 1
 
 				# poi
 				unuples = ob.values_list('tags').filter( \
-					Q(tags__contains=['amenity']) & \
 					Q(feature_type='node') & \
 					Q(user=user) & \
 					Q(timestamp__date__range=[start,end]))
@@ -280,15 +280,14 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 		foundwr = False
 		for index, item in enumerate(ws):
-			if item[index][0] == user:
+			if item[0] == user:
 				stat['Ways']['fifth'] = {}
-				stat['Ways']['fifth']['rank'] = index
+				stat['Ways']['fifth']['rank'] = index + 1
 				stat['Ways']['fifth']['OSM Username'] = user
 				stat['Ways']['fifth']['Highlighted'] = 1
 
 				# poi
 				uwuples = ob.values_list('tags').filter( \
-					Q(tags__contains=['amenity']) & \
 					Q(feature_type='way') & \
 					Q(user=user) & \
 					Q(timestamp__date__range=[start,end]))
