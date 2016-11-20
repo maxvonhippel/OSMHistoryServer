@@ -123,7 +123,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# get the unique ids from ndtmp as strings
 	strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).values_list('feature_id_str',flat=True).distinct()
 	# combine all features containing >=1 ok members with my existing list of ok nodes
-	ob = Feature.geoobjects.filter(Q(members__ref__in=strids) | ndtmp
+	rw = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Member.objects.filter(ref__in=strids)))
+	ob = rw | ndtmp
 	# for more, see:
 	# http://stackoverflow.com/questions/40585055/querying-objects-using-attribute-of-member-of-many-to-many/40602515#40602515
 
