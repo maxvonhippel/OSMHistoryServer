@@ -45,7 +45,7 @@ class debug_tool:
 	def deend(self):
 		now = datetime.now()
 		printstatement = "{:%Y-%m-%d %H:%M:%S.%f} --> ".format(now)
-		printstatement += str(self.prints) + " statements printed, " + diff(self.last, now) + " seconds elapsed since function start"
+		printstatement += str(self.prints) + " statements printed, " + diff(self.start, now) + " seconds elapsed since function start"
 		self.last = now
 		print(printstatement)
 
@@ -208,13 +208,12 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 	d.deprint("going to enumerate over leaderboards")
 
-	c = connection.cursor()
-
 	for index, word in enumerate(pres):
 
         	# Nodes
+        	nodeuser = ns[index][0]
         	stat['Nodes'][word] = {}
-		stat['Nodes'][word]["OSM Username"] = ns[index][0]
+		stat['Nodes'][word]["OSM Username"] = nodeuser
 		stat['Nodes'][word]["Nodes"] = ns[index][1]
 		stat['Nodes'][word]["Rank"] = index + 1
 
@@ -222,7 +221,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		nuples = ob.values_list('tags').filter( \
 			(~Q(tags={})) & \
 			Q(feature_type='node') & \
-			Q(user=ns[index][0]) & \
+			Q(user=nodeuser) & \
 			Q(timestamp__date__range=[start,end]))
 
 		stat['Nodes'][word]['Most Frequently Edited POI'] = Most_Common(nuples)
@@ -234,8 +233,9 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		d.deprint(json.dumps(stat['Nodes'][word]))	# DEBUG
 
 		# Ways
+		wayuser = ws[index][0]
 		stat['Ways'][word] = {}
-		stat['Ways'][word]['OSM Username'] = ws[index][0]
+		stat['Ways'][word]['OSM Username'] = wayuser
 		stat['Ways'][word]['Ways'] = ws[index][1]
 		stat['Ways'][word]['Rank'] = index + 1
 
@@ -243,12 +243,12 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		wuples = ob.values_list('tags').filter( \
 			(~Q(tags={})) & \
 			Q(feature_type='way') & \
-			Q(user=ns[index][0]) & \
+			Q(user=wayuser) & \
 			Q(timestamp__date__range=[start,end]))
 
 		stat['Ways'][word]['Most Frequently Edited POI'] = Most_Common(wuples)
 
-		if user == stat['Ways'][word]['OSM Username']:
+		if user == wayuser:
 			stat['Ways'][word]['Highlighted'] = 1
 			foundways = True
 
@@ -259,50 +259,49 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 		d.deprint("looking for user nodes")
 
-		foundnr = False
-		for index, item in enumerate(ns):
-			if item[0] == user:
-				stat['Nodes']['fifth'] = {}
-				stat['Nodes']['fifth']['Rank'] = index + 1
-				stat['Nodes']['fifth']['OSM Username'] = user
-				stat['Nodes']['fifth']['Highlighted'] = 1
+		uiw = [item[0] for item in ns].index(user)
+		item = ns[uiw]
 
-				# poi
-				unuples = ob.values_list('tags').filter( \
-					(~Q(tags={})) & \
-					Q(feature_type='node') & \
-					Q(user=user) & \
-					Q(timestamp__date__range=[start,end]))
+		if item[0] == user:
+			stat['Nodes']['fifth'] = {}
+			stat['Nodes']['fifth']['rank'] = uiw + 1
+			stat['Nodes']['fifth']['OSM Username'] = user
+			stat['Nodes']['fifth']['Highlighted'] = 1
+			# poi
+			unuples = ob.values_list('tags').filter( \
+				(~Q(tags={})) & \
+				Q(feature_type='way') & \
+				Q(user=user) & \
+				Q(timestamp__date__range=[start,end]))
 
-				stat['Nodes']['fifth']['Most Frequently Edited POI'] = Most_Common(unuples)
+			stat['Nodes']['fifth']['Most Frequently Edited POI'] = Most_Common(unuples)
 
-				break
+		d.deprint("found user nodes")
 
 	# user search ways
 	if user != "" and not foundways:
 
 		d.deprint("looking for user ways")
 
-		foundwr = False
-		for index, item in enumerate(ws):
-			if item[0] == user:
-				stat['Ways']['fifth'] = {}
-				stat['Ways']['fifth']['rank'] = index + 1
-				stat['Ways']['fifth']['OSM Username'] = user
-				stat['Ways']['fifth']['Highlighted'] = 1
+		uiw = [item[0] for item in ws].index(user)
+		item = ws[uiw]
 
-				# poi
-				uwuples = ob.values_list('tags').filter( \
-					(~Q(tags={})) & \
-					Q(feature_type='way') & \
-					Q(user=user) & \
-					Q(timestamp__date__range=[start,end]))
+		if item[0] == user:
+			stat['Ways']['fifth'] = {}
+			stat['Ways']['fifth']['rank'] = uiw + 1
+			stat['Ways']['fifth']['OSM Username'] = user
+			stat['Ways']['fifth']['Highlighted'] = 1
+			# poi
+			uwuples = ob.values_list('tags').filter( \
+				(~Q(tags={})) & \
+				Q(feature_type='way') & \
+				Q(user=user) & \
+				Q(timestamp__date__range=[start,end]))
 
-				stat['Ways']['fifth']['Most Frequently Edited POI'] = Most_Common(uwuples)
+			stat['Ways']['fifth']['Most Frequently Edited POI'] = Most_Common(uwuples)
 
-				break
+		d.deprint("found user ways")
 
-	d.deprint(json.dumps(stat))	# DEBUG
 	d.deend()
 
 	# wrap it up in a json format
