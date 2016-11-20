@@ -2,19 +2,24 @@ from django.shortcuts import render
 
 import sys
 import json
-from django.http import JsonResponse
-from django.http import HttpResponse
+from django.http import JsonResponse, HttpResponse
 from django_hstore import hstore
 from django_hstore.hstore import DictionaryField
-from django.contrib.gis.geos import Point
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Point, Polygon
 from osmhistorynepal.models import Member, Feature # your appname.models, and your model names, here
 from django.db.models import Count, Q, IntegerField, Sum, Case, When, Prefetch
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import dateutil.parser
 from django.db import connection
 import time
 from collections import Counter
+
+# diff print for time stamps
+# http://stackoverflow.com/a/37471918/1586231
+def diff(t_a, t_b):
+    t_diff = relativedelta(t_a, t_b)
+    return '{h}h {m}m {s}s'.format(h=t_diff.hours, m=t_diff.minutes, s=t_diff.seconds)
 
 # debug tool for query speed analysis
 class debug_tool:
@@ -30,16 +35,14 @@ class debug_tool:
 		self.prints += 1
 		now = datetime.now()
 		printstatement = "{:%Y-%m-%d %H:%M:%S.%f}".format(now)
-		elap = now - self.last
-		printstatement += "\nelapsed since last: " + str(elap) + "\n"
-		printstatement += " ->> Debug statement #" + str(self.prints) + "\noutput:\n" + msg
+		printstatement += "\nelapsed since last: " + diff(self.last, now) + "\n"
+		printstatement += " ->> Debug statement #" + str(self.prints) + "\noutput:\n" + msg + "\n"
 		print(printstatement)
 		self.last = now
 	# print the number of prints from debug, and a message
 	def deend(self):
-		elap = datetime.now() - self.start
 		printstatement = "{:%Y-%m-%d %H:%M:%S.%f} --> ".format(datetime.now())
-		printstatement += str(self.prints) + " statements printed, " + str(elap) + " seconds elapsed since function start"
+		printstatement += str(self.prints) + " statements printed, " + diff(self.last, datetime.now()) + " seconds elapsed since function start"
 		print(printstatement)
 
 # http://stackoverflow.com/a/20872750/1586231
@@ -140,7 +143,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		Education_start = Sum( \
         		Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
 			Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-			Q(tags__contains=['music_school']) & Q(timestamp__date__lte=start)), then = 1), \
+			Q(tags__contains=['music_school'])) & Q(timestamp__date__lte=start), then = 1), \
 			default = 0, \
 			output_field=IntegerField())), \
 		Health_start = Sum( \
