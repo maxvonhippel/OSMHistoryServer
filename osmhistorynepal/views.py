@@ -28,14 +28,14 @@ class debug_tool:
 	# initialize a new debug tool
 	def __init__(self):
 		self.prints = 0
-		self.start = datetime.now().isoformat()
+		self.start = datetime.now()
 		self.last = self.start
 		printstatement = "debug tool instantiated: {:%Y-%m-%d %H:%M:%S.%f}".format(self.start)
 		print(printstatement)
 	# print the current timestamp, the number of prints done from debug, and a message
 	def deprint(self, msg):
 		self.prints += 1
-		now = datetime.now().isoformat()
+		now = datetime.now()
 		printstatement = "{:%Y-%m-%d %H:%M:%S.%f}".format(now)
 		printstatement += "\nelapsed since last: " + diff(self.last, now) + "\n"
 		printstatement += " ->> Debug statement #" + str(self.prints) + "\noutput:\n" + msg + "\n"
@@ -43,7 +43,7 @@ class debug_tool:
 		self.last = now
 	# print the number of prints from debug, and a message
 	def deend(self):
-		now = datetime.now().isoformat()
+		now = datetime.now()
 		printstatement = "{:%Y-%m-%d %H:%M:%S.%f} --> ".format(now)
 		printstatement += str(self.prints) + " statements printed, " + diff(self.last, now) + " seconds elapsed since function start"
 		self.last = now
