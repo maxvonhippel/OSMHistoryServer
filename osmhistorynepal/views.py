@@ -60,9 +60,7 @@ def is_ok(v):
 def Most_Common(tuples):
 
 	if not tuples: return ""
-
 	POI = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
-
 	p = { k: tp[0][k] for k in POI for tp in tuples if k in tp[0] }
 	f = [ v for v in p.values() if is_ok(v) ]
 	return str(Counter(f).most_common(1)[0][0])
@@ -136,7 +134,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 	d.deprint("now time for selection")
 
-	selection = ob.select_related().filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
+	selection = ob.filter(timestamp__lte=end).values('feature_type','feature_id').only('tags', 'timestamp').aggregate( \
 		Buildings_start = Sum( \
 			Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
 			default = 0, \
@@ -191,11 +189,11 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 	# leaderboards
 	# ways
-	ws = ob.filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='way')).values_list('user').annotate( \
+	ws = ob.defer('version','uid','changeset').filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='way')).values_list('user').annotate( \
         	num=Count('user')).order_by('-num')
 
 	# nodes
-	ns = ob.filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).values_list('user').annotate( \
+	ns = ob.defer('version','uid','changeset').filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).values_list('user').annotate( \
         	num=Count('user')).order_by('-num')
 
 	# put them in our stat object and find most freq. edited POI
@@ -219,11 +217,11 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		stat['Nodes'][word]["Rank"] = index + 1
 
 		# poi
-		nuples = ob.values_list('tags').filter( \
+		nuples = ob.only('tags','feature_type','timestamp','user').filter( \
 			(~Q(tags={})) & \
 			Q(feature_type='node') & \
-			Q(user=nodeuser) & \
-			Q(timestamp__date__range=[start,end]))
+			Q(user=wayuser) & \
+			Q(timestamp__date__range=[start,end])).values_list('tags')
 
 		stat['Nodes'][word]['Most Frequently Edited POI'] = Most_Common(nuples)
 
@@ -241,11 +239,11 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		stat['Ways'][word]['Rank'] = index + 1
 
 		# poi
-		wuples = ob.values_list('tags').filter( \
+		wuples = ob.only('tags','feature_type','timestamp','user').filter( \
 			(~Q(tags={})) & \
 			Q(feature_type='way') & \
 			Q(user=wayuser) & \
-			Q(timestamp__date__range=[start,end]))
+			Q(timestamp__date__range=[start,end])).values_list('tags')
 
 		stat['Ways'][word]['Most Frequently Edited POI'] = Most_Common(wuples)
 
@@ -269,11 +267,11 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 				stat['Nodes']['fifth']['OSM Username'] = user
 				stat['Nodes']['fifth']['Highlighted'] = 1
 				# poi
-				unuples = ob.values_list('tags').filter( \
+				uwuples = ob.only('tags','feature_type','timestamp','user').filter( \
 					(~Q(tags={})) & \
-					Q(feature_type='way') & \
+					Q(feature_type='node') & \
 					Q(user=user) & \
-					Q(timestamp__date__range=[start,end]))
+					Q(timestamp__date__range=[start,end])).values_list('tags')
 
 				stat['Nodes']['fifth']['Most Frequently Edited POI'] = Most_Common(unuples)
 		except:
@@ -296,11 +294,11 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 				stat['Ways']['fifth']['OSM Username'] = user
 				stat['Ways']['fifth']['Highlighted'] = 1
 				# poi
-				uwuples = ob.values_list('tags').filter( \
+				uwuples = ob.only('tags','feature_type','timestamp','user').filter( \
 					(~Q(tags={})) & \
 					Q(feature_type='way') & \
 					Q(user=user) & \
-					Q(timestamp__date__range=[start,end]))
+					Q(timestamp__date__range=[start,end])).values_list('tags')
 
 				stat['Ways']['fifth']['Most Frequently Edited POI'] = Most_Common(uwuples)
 		except:
