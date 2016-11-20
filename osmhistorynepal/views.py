@@ -59,7 +59,8 @@ def Most_Common(tuples):
 
 	POI = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
 
-	filtered = [((k, v), n) for (k, v), n in tuples if k in POI and v and v != "" and v != "primary" and not v.isdigit()]
+	counter = Counter(tuples)
+	filtered = [((k, v), n) for (k, v), n in counter if k in POI and v and v != "" and v != "primary" and not v.isdigit()]
 
 	return heapq.nlargest(1, filtered, key=itemgetter(1))
 
