@@ -51,6 +51,9 @@ class debug_tool:
 		self.last = now
 		print(printstatement)
 
+def is_ok(v):
+	return (v and v != "" and v != "primary" and not v.isdigit())
+
 # http://stackoverflow.com/a/20872750/1586231
 # finds the most common POI in a query set from the tags
 def Most_Common(tuples):
@@ -59,10 +62,8 @@ def Most_Common(tuples):
 
 	POI = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
 
-	counter = Counter(tuples)
-	filtered = [((k, v), n) for (k, v), n in counter if k in POI and v and v != "" and v != "primary" and not v.isdigit()]
-
-	return heapq.nlargest(1, filtered, key=itemgetter(1))
+	ptuples = { k: tuples[k] for k in POI if is_ok(tuples[k]) }
+	return ptuples.values().most_common(1)
 
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
