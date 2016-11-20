@@ -15,7 +15,7 @@ from django.db import connection
 import time
 from collections import Counter
 
-POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
+# ---------------------------------- HELPER FUNCTIONS ---------------------------------------------
 
 # diff print for time stamps
 # http://stackoverflow.com/a/37471918/1586231
@@ -52,21 +52,26 @@ class debug_tool:
 # http://stackoverflow.com/a/20872750/1586231
 # finds the most common POI in a query set from the tags
 def Most_Common(tuples):
+
 	if not tuples:
 		return ""
+
 	lst = []
+	POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
+
 	for tuple in tuples:
 		for key in POIKEYS:
 			try:
 				str = tuple[0].get(key)
-				if str and str != "":
+				if str and str != "" and str != "primary" and not str.isdigit():
 					lst.append(str)
 			except:
 				pass
+
 	if not lst:
     		return ""
-    	data = Counter(lst)
-    	return data.most_common(1)[0][0]
+
+    	return Counter(lst).most_common(1)[0][0]
 
 
 # returns a javascript formatted array of usernames for all of nepal
@@ -258,23 +263,25 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	if user != "" and not foundnodes:
 
 		d.deprint("looking for user nodes")
+		try:
+			uiw = [item[0] for item in ns].index(user)
+			item = ns[uiw]
 
-		uiw = [item[0] for item in ns].index(user)
-		item = ns[uiw]
+			if item[0] == user:
+				stat['Nodes']['fifth'] = {}
+				stat['Nodes']['fifth']['rank'] = uiw + 1
+				stat['Nodes']['fifth']['OSM Username'] = user
+				stat['Nodes']['fifth']['Highlighted'] = 1
+				# poi
+				unuples = ob.values_list('tags').filter( \
+					(~Q(tags={})) & \
+					Q(feature_type='way') & \
+					Q(user=user) & \
+					Q(timestamp__date__range=[start,end]))
 
-		if item[0] == user:
-			stat['Nodes']['fifth'] = {}
-			stat['Nodes']['fifth']['rank'] = uiw + 1
-			stat['Nodes']['fifth']['OSM Username'] = user
-			stat['Nodes']['fifth']['Highlighted'] = 1
-			# poi
-			unuples = ob.values_list('tags').filter( \
-				(~Q(tags={})) & \
-				Q(feature_type='way') & \
-				Q(user=user) & \
-				Q(timestamp__date__range=[start,end]))
-
-			stat['Nodes']['fifth']['Most Frequently Edited POI'] = Most_Common(unuples)
+				stat['Nodes']['fifth']['Most Frequently Edited POI'] = Most_Common(unuples)
+		except:
+			pass
 
 		d.deprint("found user nodes")
 
@@ -283,22 +290,25 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 		d.deprint("looking for user ways")
 
-		uiw = [item[0] for item in ws].index(user)
-		item = ws[uiw]
+		try:
+			uiw = [item[0] for item in ws].index(user)
+			item = ws[uiw]
 
-		if item[0] == user:
-			stat['Ways']['fifth'] = {}
-			stat['Ways']['fifth']['rank'] = uiw + 1
-			stat['Ways']['fifth']['OSM Username'] = user
-			stat['Ways']['fifth']['Highlighted'] = 1
-			# poi
-			uwuples = ob.values_list('tags').filter( \
-				(~Q(tags={})) & \
-				Q(feature_type='way') & \
-				Q(user=user) & \
-				Q(timestamp__date__range=[start,end]))
+			if item[0] == user:
+				stat['Ways']['fifth'] = {}
+				stat['Ways']['fifth']['rank'] = uiw + 1
+				stat['Ways']['fifth']['OSM Username'] = user
+				stat['Ways']['fifth']['Highlighted'] = 1
+				# poi
+				uwuples = ob.values_list('tags').filter( \
+					(~Q(tags={})) & \
+					Q(feature_type='way') & \
+					Q(user=user) & \
+					Q(timestamp__date__range=[start,end]))
 
-			stat['Ways']['fifth']['Most Frequently Edited POI'] = Most_Common(uwuples)
+				stat['Ways']['fifth']['Most Frequently Edited POI'] = Most_Common(uwuples)
+		except:
+			pass
 
 		d.deprint("found user ways")
 
