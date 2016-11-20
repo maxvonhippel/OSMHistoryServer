@@ -59,9 +59,9 @@ def Most_Common(tuples):
 	lst = []
 	POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
 
-	(tuple, key) for tuple in tuples for key in POIKEYS:
+	(tupl, key) for tupl in tuples for key in POIKEYS:
 		try:
-			str = tuple[0].get(key)
+			str = tupl[0].get(key)
 			if str and str != "" and str != "primary" and not str.isdigit():
 				lst.append(str)
 		except:
