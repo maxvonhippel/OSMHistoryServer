@@ -43,11 +43,12 @@ INSTALLED_APPS = [
     'osmhistorynepal',
     'django_extensions',
     'debug_toolbar',
+    'debug_panel',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'debug_panel.middleware.DebugPanelMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
