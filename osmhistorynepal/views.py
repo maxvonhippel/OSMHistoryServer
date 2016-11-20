@@ -14,6 +14,8 @@ import dateutil.parser
 from django.db import connection
 import time
 from collections import Counter
+import heapq
+from operator import itemgetter
 
 # ---------------------------------- HELPER FUNCTIONS ---------------------------------------------
 
@@ -55,17 +57,12 @@ def Most_Common(tuples):
 
 	if not tuples: return ""
 
-	lst = []
-	POIKEYS = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
+	POI = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
 
-	for tupl in tuples:
-		if tupl[0][0] in POIKEYS:
-			str = tupl[0][1]
-			if str and str != "" and str != "primary" and not str.isdigit():
-					lst.append(str)
-	if not lst: return ""
+	filtered = [((k, v), n) for (k, v), n in tuples if k in POI and v and v != "" and v != "primary" and not v.isdigit()]
 
-    	return Counter(lst).most_common(1)[0][0]
+	return heapq.nlargest(1, filtered, key=itemgetter(1))
+
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
 
