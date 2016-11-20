@@ -63,9 +63,9 @@ def Most_Common(tuples):
 
 	POI = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
 
-	p = { k: tuples[k] for k in POI }
-	f = [ v for v in ptuples.values() if is_ok(v) ]
-	return f.most_common(1)
+	p = { k: tuples[0][k] for k in POI for tuples in nuples if k in tuples[0] }
+	f = [ v for v in p.values() if is_ok(v) ]
+	return str(Counter(f).most_common(1)[0][0])
 
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
