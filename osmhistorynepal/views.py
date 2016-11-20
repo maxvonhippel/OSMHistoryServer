@@ -51,6 +51,7 @@ class debug_tool:
 		self.last = now
 		print(printstatement)
 
+# checks to see if we will allow this value in our list of values to find most frequent POI
 def is_ok(v):
 	return (v and v != "" and v != "primary" and not v.isdigit())
 
@@ -62,8 +63,9 @@ def Most_Common(tuples):
 
 	POI = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
 
-	ptuples = { k: tuples[k] for k in POI if is_ok(tuples[k]) }
-	return ptuples.values().most_common(1)
+	p = { k: tuples[k] for k in POI }
+	f = [ v for v in ptuples.values() if is_ok(v) ]
+	return f.most_common(1)
 
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
