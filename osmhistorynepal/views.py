@@ -55,7 +55,7 @@ def most_frequent_poi(user, start, end, ftype):
 	# start and end are date range
 	# user is the user name (not uid) we will search
 	c = connection.cursor()
-	c.execute("SELECT value FROM ( SELECT value, count(*) FROM ( SELECT b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.timestamp <= %s::timestamp AND b.timestamp >= %s::timestamp AND b.feature_type = %s) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [ user, end.strftime("%s"), start.strftime("%s"), ftype] )
+	c.execute("SELECT value FROM ( SELECT value, count(*) FROM ( SELECT b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.timestamp <= %s::timestamp AND b.timestamp >= %s::timestamp AND b.feature_type = %s) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [ user, end, start, ftype] )
 	return c.fetchone()
 
 
@@ -210,7 +210,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		stat['Nodes'][word]["Nodes"] = ns[index][1]
 		stat['Nodes'][word]["Rank"] = index + 1
 
-		stat['Nodes'][word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, start, end, 'node')
+		stat['Nodes'][word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, sstart, send, 'node')
 
 		if user == stat['Nodes'][word]['OSM Username']:
 			stat['Nodes'][word]['highlighted'] = 1
@@ -225,7 +225,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		stat['Ways'][word]['Ways'] = ws[index][1]
 		stat['Ways'][word]['Rank'] = index + 1
 
-		stat['Ways'][word]['Most Frequently Edited POI'] = most_frequent_poi(wayuser, start, end, 'way')
+		stat['Ways'][word]['Most Frequently Edited POI'] = most_frequent_poi(wayuser, sstart, send, 'way')
 
 		if user == wayuser:
 			stat['Ways'][word]['Highlighted'] = 1
@@ -246,7 +246,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 				stat['Nodes']['fifth']['rank'] = uiw + 1
 				stat['Nodes']['fifth']['OSM Username'] = user
 				stat['Nodes']['fifth']['Highlighted'] = 1
-				stat['Nodes']['fifth']['Most Frequently Edited POI'] = most_frequent_poi(user, start, end, 'node')
+				stat['Nodes']['fifth']['Most Frequently Edited POI'] = most_frequent_poi(user, sstart, send, 'node')
 		except:
 			pass
 
@@ -266,7 +266,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 				stat['Ways']['fifth']['rank'] = uiw + 1
 				stat['Ways']['fifth']['OSM Username'] = user
 				stat['Ways']['fifth']['Highlighted'] = 1
-				stat['Ways']['fifth']['Most Frequently Edited POI'] = most_frequent_poi(user, start, end, 'way')
+				stat['Ways']['fifth']['Most Frequently Edited POI'] = most_frequent_poi(user, sstart, send, 'way')
 		except:
 			pass
 
