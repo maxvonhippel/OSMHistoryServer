@@ -49,7 +49,7 @@ class debug_tool:
 		self.last = now
 		print(printstatement)
 
-def most_frequent_poi(user, start, end, ftype)
+def most_frequent_poi(user, start, end, ftype):
 	# ftype can be node, way, or relation, and is a string
 	# start and end are date range
 	# user is the user name (not uid) we will search
