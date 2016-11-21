@@ -14,8 +14,6 @@ import dateutil.parser
 from django.db import connection
 import time
 from collections import Counter
-import heapq
-from operator import itemgetter
 
 # ---------------------------------- HELPER FUNCTIONS ---------------------------------------------
 
@@ -51,19 +49,13 @@ class debug_tool:
 		self.last = now
 		print(printstatement)
 
-# checks to see if we will allow this value in our list of values to find most frequent POI
-def is_ok(v):
-	return (v and v != "" and v != "primary" and not v.isdigit())
-
-# http://stackoverflow.com/a/20872750/1586231
-# finds the most common POI in a query set from the tags
-def Most_Common(tuples):
-
-	if not tuples: return ""
-	POI = [ 'aerialway', 'aeroway', 'amenity', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service' ]
-	p = { k: tp[0][k] for k in POI for tp in tuples if k in tp[0] }
-	f = [ v for v in p.values() if is_ok(v) ]
-	return str(Counter(f).most_common(1)[0][0])
+def most_frequent_poi(user, start, end, ftype)
+	# ftype can be node, way, or relation, and is a string
+	# start and end are date range
+	# user is the user name (not uid) we will search
+	c = connection.cursor()
+	c.execute("SELECT value FROM ( SELECT value, count(*) FROM ( SELECT b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.timestamp <= %s::timestamp AND b.timestamp >= %s::timestamp AND b.feature_type = %s) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", user, end.replace(tzinfo=timezone.utc).timestamp(), start.replace(tzinfo=timezone.utc).timestamp(), ftype)
+	return c.fetchone()
 
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
@@ -217,14 +209,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		stat['Nodes'][word]["Nodes"] = ns[index][1]
 		stat['Nodes'][word]["Rank"] = index + 1
 
-		# poi
-		nuples = ob.only('tags','feature_type','timestamp','user').filter( \
-			(~Q(tags={})) & \
-			Q(feature_type='node') & \
-			Q(user=nodeuser) & \
-			Q(timestamp__date__range=[start,end])).values_list('tags')
-
-		stat['Nodes'][word]['Most Frequently Edited POI'] = Most_Common(nuples)
+		stat['Nodes'][word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, start, end, 'node')
 
 		if user == stat['Nodes'][word]['OSM Username']:
 			stat['Nodes'][word]['highlighted'] = 1
@@ -239,14 +224,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		stat['Ways'][word]['Ways'] = ws[index][1]
 		stat['Ways'][word]['Rank'] = index + 1
 
-		# poi
-		wuples = ob.only('tags','feature_type','timestamp','user').filter( \
-			(~Q(tags={})) & \
-			Q(feature_type='way') & \
-			Q(user=wayuser) & \
-			Q(timestamp__date__range=[start,end])).values_list('tags')
-
-		stat['Ways'][word]['Most Frequently Edited POI'] = Most_Common(wuples)
+		stat['Ways'][word]['Most Frequently Edited POI'] = most_frequent_poi(wayuser, start, end, 'way')
 
 		if user == wayuser:
 			stat['Ways'][word]['Highlighted'] = 1
@@ -267,14 +245,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 				stat['Nodes']['fifth']['rank'] = uiw + 1
 				stat['Nodes']['fifth']['OSM Username'] = user
 				stat['Nodes']['fifth']['Highlighted'] = 1
-				# poi
-				uwuples = ob.only('tags','feature_type','timestamp','user').filter( \
-					(~Q(tags={})) & \
-					Q(feature_type='node') & \
-					Q(user=user) & \
-					Q(timestamp__date__range=[start,end])).values_list('tags')
-
-				stat['Nodes']['fifth']['Most Frequently Edited POI'] = Most_Common(unuples)
+				stat['Nodes']['fifth']['Most Frequently Edited POI'] = most_frequent_poi(user, start, end, 'node')
 		except:
 			pass
 
@@ -294,14 +265,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 				stat['Ways']['fifth']['rank'] = uiw + 1
 				stat['Ways']['fifth']['OSM Username'] = user
 				stat['Ways']['fifth']['Highlighted'] = 1
-				# poi
-				uwuples = ob.only('tags','feature_type','timestamp','user').filter( \
-					(~Q(tags={})) & \
-					Q(feature_type='way') & \
-					Q(user=user) & \
-					Q(timestamp__date__range=[start,end])).values_list('tags')
-
-				stat['Ways']['fifth']['Most Frequently Edited POI'] = Most_Common(uwuples)
+				stat['Ways']['fifth']['Most Frequently Edited POI'] = most_frequent_poi(user, start, end, 'way')
 		except:
 			pass
 
