@@ -18,13 +18,13 @@ from collections import Counter
 
 # ---------------------------------- HELPER FUNCTIONS ---------------------------------------------
 
-# diff print for time stamps
+# ---------------------------------- DIFF FOR TIMESTAMPS
 # http://stackoverflow.com/a/37471918/1586231
 def diff(t_a, t_b):
     t_diff = relativedelta(t_a, t_b)
     return '{h}h {m}m {s}s {ss}ms'.format(h=t_diff.hours, m=t_diff.minutes, s=t_diff.seconds, ss=t_diff.microseconds)
 
-# debug tool for query speed analysis
+# ---------------------------------- SIMPLE DEBUG TOOL
 class debug_tool:
 	# initialize a new debug tool
 	def __init__(self):
@@ -50,41 +50,41 @@ class debug_tool:
 		self.last = now
 		print(printstatement)
 
-def most_frequent_poi(user, start, end, ftype, fids):
-	c = connection.cursor()
-	c.execute("SELECT value FROM ( SELECT value, count(*) FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.timestamp <= %s::timestamp AND b.timestamp >= %s::timestamp AND b.feature_type = %s AND b.feature_id = ANY(%s) ) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [ user, end, start, ftype, fids] )
-	return c.fetchone()
+# ---------------------------------- MOST FREQUENT POI FOR A USER
+def most_frequent_poi(user, sen):
+	return sen.raw("SELECT value as id FROM ( SELECT value, count(*) FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s ) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", user)[:1]
 
-def top_five(user, start, end, ftype, fids):
-	c = connection.cursor()
+
+# ---------------------------------- TOP FIVE MOST ACTIVE USERS IN SELECTION
+def top_five(user, sen):
 	found = False
 	ret = {}
 	pres = [ "first", "second", "third", "fourth", "fifth" ]
-	c.execute("SELECT a.user, count(*) FROM osmhistorynepal_feature a WHERE a.feature_type = %s AND a.timestamp <= %s::timestamp AND a.timestamp >= %s::timestamp AND a.feature_id = ANY(%s) GROUP BY a.user LIMIT 5", [ftype, end, start, fids])
+	st = sen.raw("SELECT a.user, count(*) as id FROM osmhistorynepal_feature a GROUP BY a.user ORDER BY count LIMIT 5")
 	# now we iterate
 	for index, word in enumerate(pres):
         	ret[word] = {}
 		ret[word]["Rank"] = index + 1
 		i = 5
-		cur = c.fetchone()
+		cur = st[index]
 		while index == 4 and not found:
 			i += 1
-			try: 
-				t = c.fetchone()
+			try:
+				t = st[i]
 				if t[0] == user:
 					found = True
 					ret[word]["Rank"] = i
 					cur = t
 			except: break
-		nodeuser = cur[0]
-		ret[word]["OSM Username"] = nodeuser
+		usr = cur.user
+		ret[word]["OSM Username"] = usr
 		if ftype == 'node':
-			ret[word]["Nodes"] = cur[1]
+			ret[word]["Nodes"] = cur.count
 		elif ftype == 'way':
-			ret[word]["Ways"] = cur[1]
-		ret[word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, start, end, ftype, fids)
+			ret[word]["Ways"] = cur.count
+		ret[word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, sen)
 
-		if user == nodeuser:
+		if user == usr:
 			ret[word]['highlighted'] = 1
 			found = True
 
@@ -96,7 +96,7 @@ def top_five(user, start, end, ftype, fids):
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
 
-# returns a javascript formatted array of usernames for all of nepal
+# ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
 	c = connection.cursor()
 	query = 'SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC'
@@ -109,7 +109,7 @@ def user_names_view(request):
 	return HttpResponse(ret)
 
 
-# returns a json array with metadata statistics for all of nepal for all time
+# ---------------------------------- ALL OF NEPAL META DATA
 def nepal_statistics_view(request):
 	# get all the objects
 	ob = Feature.geoobjects
@@ -139,13 +139,14 @@ def nepal_statistics_view(request):
 	# wrap it up in a json format and return it
 	return JsonResponse(nstat)
 
-# returns a json array with data on a specific area of nepal in a specific time range, optionally with extra info for a specific user
+# ---------------------------------- SELECTION WITHIN NEPAL, DATE RANGE META DATA
 def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 	d = debug_tool() # DEBUG
 
 	# parse range
-	sstart,send = range.split(",") # 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
+	# eg 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
+	sstart,send = range.split(",")
 	start = dateutil.parser.parse(sstart)
 	end = dateutil.parser.parse(send)
 	# define our bounding box
@@ -157,8 +158,6 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# combine all features containing >=1 ok members with my existing list of ok nodes
 	rw = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Member.objects.filter(ref__in=strids)))
 	ob = rw | ndtmp
-	# for more, see:
-	# http://stackoverflow.com/questions/40585055/querying-objects-using-attribute-of-member-of-many-to-many/40602515#40602515
 
 	stat = {}
 
@@ -219,21 +218,13 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	stat['Nodes'] = {}
 	stat['Ways'] = {}
 
-	d.deprint("making ids list for nodes")
-	
-	arrn = "{" + str( [ str(v) for v in strids ] )[1:-1].replace("'","") + "}"
-
 	d.deprint("going to enumerate over nodes leaderboards")
 
-	stat['Nodes'] = top_five(user, sstart, send, 'node', arrn )
-
-	d.deprint("making ids list for ways")
-	
-	arrw = "{" + str ( [ str(v) for v in rw.filter(feature_type='way').values_list('feature_id', flat = True) ] )[1:-1].replace("'","") + "}"
+	stat['Nodes'] = top_five(user, ndtmp)
 
 	d.deprint("going to enumerate over ways leaderboards")
 
-	stat['Ways'] = top_five(user, sstart, send, 'way',  arrw)
+	stat['Ways'] = top_five(user, rw.filter(feature_type='way'))
 
 	d.deend()
 
