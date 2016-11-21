@@ -50,40 +50,46 @@ class debug_tool:
 		self.last = now
 		print(printstatement)
 
-def most_frequent_poi(user, start, end, ftype):
-	# ftype can be node, way, or relation, and is a string
-	# start and end are date range in string format
-	# user is the user name (not uid) we will search
+def most_frequent_poi(user, start, end, ftype, fids):
 	c = connection.cursor()
-	c.execute("SELECT value FROM ( SELECT value, count(*) FROM ( SELECT b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.timestamp <= %s::timestamp AND b.timestamp >= %s::timestamp AND b.feature_type = %s) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [ user, end, start, ftype] )
-	return c.fetchone()[0]
+	c.execute("SELECT value FROM ( SELECT value, count(*) FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.timestamp <= %s::timestamp AND b.timestamp >= %s::timestamp AND b.feature_type = %s AND b.feature_id = ANY(%s::text[]) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [ user, end, start, ftype, fids] )
+	return c.fetchone()
 
-def top_five(user, start, end, ftype):
-	# first we set up the cursor
+def top_five(user, start, end, ftype, fids):
 	c = connection.cursor()
-	# and our vars
+	found = False
 	ret = {}
 	pres = [ "first", "second", "third", "fourth", "fifth" ]
-	# next we get the nodes and ways
-	c.execute("SELECT a.user, count(*) FROM osmhistorynepal_feature a WHERE a.feature_type = %s AND a.timestamp <= %s::timestamp AND a.timestamp >= %s::timestamp AND GROUP BY a.user LIMIT 5", [ftype, end, start])
+	c.execute("SELECT a.user, count(*) FROM osmhistorynepal_feature a WHERE a.feature_type = %s AND a.timestamp <= %s::timestamp AND a.timestamp >= %s::timestamp AND b.feature_id = ANY(%s::text[]) GROUP BY a.user LIMIT 5", [ftype, end, start, fids])
 	# now we iterate
 	for index, word in enumerate(pres):
-
-        	# Nodes
         	ret[word] = {}
-        	cur = c.fetchone()
-        	nodeuser = cur[0]
+		ret[word]["Rank"] = index + 1
+		i = 5
+		cur = c.fetchone()
+		while index == 4 and not found:
+			i += 1
+			try: 
+				t = c.fetchone()
+				if t[0] == user:
+					found = True
+					ret[word]["Rank"] = i
+					cur = t
+			except: break
+		nodeuser = cur[0]
 		ret[word]["OSM Username"] = nodeuser
 		if ftype == 'node':
 			ret[word]["Nodes"] = cur[1]
 		elif ftype == 'way':
 			ret[word]["Ways"] = cur[1]
-		ret[word]["Rank"] = index + 1
 		ret[word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, start, end, ftype)
 
 		if user == nodeuser:
 			ret[word]['highlighted'] = 1
+			found = True
 
+	if ret == {}:
+		return ""
 	return ret
 
 
@@ -154,9 +160,11 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 	# for more, see:
 	# http://stackoverflow.com/questions/40585055/querying-objects-using-attribute-of-member-of-many-to-many/40602515#40602515
 
-	d.deprint("now time for selection")
+	stat = {}
 
-	selection = ob.only('tags', 'timestamp', 'feature_type', 'feature_id' \
+	if False:
+		d.deprint("now time for selection")
+		selection = ob.only('tags', 'timestamp', 'feature_type', 'feature_id' \
 		).filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
 		Buildings_start = Sum( \
 			Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
@@ -201,73 +209,26 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			Q(tags__contains=['surgery'])), then = 1), \
 			default = 0, \
 			output_field=IntegerField())) \
-	)
+		)
 
-	# make our json obj
-	stat = {}
+		stat['Selection Statistics'] = selection
 
-	stat['Selection Statistics'] = selection
-
-	d.deprint(json.dumps(stat['Selection Statistics'])) # DEBUG
+		d.deprint(json.dumps(stat['Selection Statistics'])) # DEBUG
 
 	# leaderboards
-	# ways
-	# ws = ob.defer('version','uid','changeset').filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='way')).values_list('user').annotate( \
-        	# num=Count('user')).order_by('-num')
-
-	# nodes
-	# ns = ob.defer('version','uid','changeset').filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).values_list('user').annotate( \
-        	# num=Count('user')).order_by('-num')
-
-	# put them in our stat object and find most freq. edited POI
-	# foundnodes = False
-	# foundways = False
-
-	d.deprint("going to enumerate over leaderboards")
 
 	stat['Nodes'] = {}
 	stat['Ways'] = {}
-	stat['Nodes'] = top_five(user, sstart, send, 'node')
-	stat['Ways'] = top_five(user, sstart, send, 'way')
 
-	# user search nodes
-	if False: #user != "" and not foundnodes:
+	d.deprint("going to enumerate over nodes leaderboards")
+	
+	arrn = "{" + str( [ str(v)[1:-1] for v in strids ] )[1:-1] + "}"
+	stat['Nodes'] = top_five(user, sstart, send, 'node', arrn )
 
-		d.deprint("looking for user nodes")
-		try:
-			uiw = [item[0] for item in ns].index(user)
-			item = ns[uiw]
-
-			if item[0] == user:
-				stat['Nodes']['fifth'] = {}
-				stat['Nodes']['fifth']['rank'] = uiw + 1
-				stat['Nodes']['fifth']['OSM Username'] = user
-				stat['Nodes']['fifth']['Highlighted'] = 1
-				# stat['Nodes']['fifth']['Most Frequently Edited POI'] = most_frequent_poi(user, sstart, send, 'node')
-		except:
-			pass
-
-		d.deprint("found user nodes")
-
-	# user search ways
-	if False: #user != "" and not foundways:
-
-		d.deprint("looking for user ways")
-
-		try:
-			uiw = [item[0] for item in ws].index(user)
-			item = ws[uiw]
-
-			if item[0] == user:
-				stat['Ways']['fifth'] = {}
-				stat['Ways']['fifth']['rank'] = uiw + 1
-				stat['Ways']['fifth']['OSM Username'] = user
-				stat['Ways']['fifth']['Highlighted'] = 1
-				# stat['Ways']['fifth']['Most Frequently Edited POI'] = most_frequent_poi(user, sstart, send, 'way')
-		except:
-			pass
-
-		d.deprint("found user ways")
+	d.deprint("going to enumerate over ways leaderboards")
+	
+	arrw = "{" + str ( [ str(v)[1:-1] for v in rw.filter(feature_type='way').values_list('feature_id', flat = True) ] )[1:-1] + "}"
+	stat['Ways'] = top_five(user, sstart, send, 'way',  arrw)
 
 	d.deend()
 
