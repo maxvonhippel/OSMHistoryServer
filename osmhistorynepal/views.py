@@ -11,6 +11,7 @@ from django.db.models import Count, Q, IntegerField, Sum, Case, When, Prefetch
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
+from django.utils import timezone
 from django.db import connection
 import time
 from collections import Counter
