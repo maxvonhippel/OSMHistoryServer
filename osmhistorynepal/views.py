@@ -52,7 +52,7 @@ class debug_tool:
 
 def most_frequent_poi(user, start, end, ftype, fids):
 	c = connection.cursor()
-	c.execute("SELECT value FROM ( SELECT value, count(*) FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.timestamp <= %s::timestamp AND b.timestamp >= %s::timestamp AND b.feature_type = %s AND b.feature_id = ANY(%s::text[]) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [ user, end, start, ftype, fids] )
+	c.execute("SELECT value FROM ( SELECT value, count(*) FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.timestamp <= %s::timestamp AND b.timestamp >= %s::timestamp AND b.feature_type = %s AND b.feature_id = ANY(%s) ) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [ user, end, start, ftype, fids] )
 	return c.fetchone()
 
 def top_five(user, start, end, ftype, fids):
@@ -60,7 +60,7 @@ def top_five(user, start, end, ftype, fids):
 	found = False
 	ret = {}
 	pres = [ "first", "second", "third", "fourth", "fifth" ]
-	c.execute("SELECT a.user, count(*) FROM osmhistorynepal_feature a WHERE a.feature_type = %s AND a.timestamp <= %s::timestamp AND a.timestamp >= %s::timestamp AND b.feature_id = ANY(%s::text[]) GROUP BY a.user LIMIT 5", [ftype, end, start, fids])
+	c.execute("SELECT a.user, count(*) FROM osmhistorynepal_feature a WHERE a.feature_type = %s AND a.timestamp <= %s::timestamp AND a.timestamp >= %s::timestamp AND a.feature_id = ANY(%s) GROUP BY a.user LIMIT 5", [ftype, end, start, fids])
 	# now we iterate
 	for index, word in enumerate(pres):
         	ret[word] = {}
@@ -82,7 +82,7 @@ def top_five(user, start, end, ftype, fids):
 			ret[word]["Nodes"] = cur[1]
 		elif ftype == 'way':
 			ret[word]["Ways"] = cur[1]
-		ret[word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, start, end, ftype)
+		ret[word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, start, end, ftype, fids)
 
 		if user == nodeuser:
 			ret[word]['highlighted'] = 1
@@ -162,9 +162,8 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 	stat = {}
 
-	if False:
-		d.deprint("now time for selection")
-		selection = ob.only('tags', 'timestamp', 'feature_type', 'feature_id' \
+	d.deprint("now time for selection")
+	selection = ob.only('tags', 'timestamp', 'feature_type', 'feature_id' \
 		).filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
 		Buildings_start = Sum( \
 			Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
@@ -211,23 +210,29 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 			output_field=IntegerField())) \
 		)
 
-		stat['Selection Statistics'] = selection
+	stat['Selection Statistics'] = selection
 
-		d.deprint(json.dumps(stat['Selection Statistics'])) # DEBUG
+	d.deprint(json.dumps(stat['Selection Statistics'])) # DEBUG
 
 	# leaderboards
 
 	stat['Nodes'] = {}
 	stat['Ways'] = {}
 
-	d.deprint("going to enumerate over nodes leaderboards")
+	d.deprint("making ids list for nodes")
 	
-	arrn = "{" + str( [ str(v)[1:-1] for v in strids ] )[1:-1] + "}"
+	arrn = "{" + str( [ str(v) for v in strids ] )[1:-1].replace("'","") + "}"
+
+	d.deprint("going to enumerate over nodes leaderboards")
+
 	stat['Nodes'] = top_five(user, sstart, send, 'node', arrn )
 
-	d.deprint("going to enumerate over ways leaderboards")
+	d.deprint("making ids list for ways")
 	
-	arrw = "{" + str ( [ str(v)[1:-1] for v in rw.filter(feature_type='way').values_list('feature_id', flat = True) ] )[1:-1] + "}"
+	arrw = "{" + str ( [ str(v) for v in rw.filter(feature_type='way').values_list('feature_id', flat = True) ] )[1:-1].replace("'","") + "}"
+
+	d.deprint("going to enumerate over ways leaderboards")
+
 	stat['Ways'] = top_five(user, sstart, send, 'way',  arrw)
 
 	d.deend()
