@@ -52,11 +52,40 @@ class debug_tool:
 
 def most_frequent_poi(user, start, end, ftype):
 	# ftype can be node, way, or relation, and is a string
-	# start and end are date range
+	# start and end are date range in string format
 	# user is the user name (not uid) we will search
 	c = connection.cursor()
 	c.execute("SELECT value FROM ( SELECT value, count(*) FROM ( SELECT b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.timestamp <= %s::timestamp AND b.timestamp >= %s::timestamp AND b.feature_type = %s) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [ user, end, start, ftype] )
 	return c.fetchone()[0]
+
+def top_five(user, start, end, ftype):
+	# first we set up the cursor
+	c = connection.cursor()
+	# and our vars
+	ret = {}
+	pres = [ "first", "second", "third", "fourth", "fifth" ]
+	# next we get the nodes and ways
+	c.execute("SELECT a.user, count(*) FROM osmhistorynepal_feature a WHERE a.feature_type = %s AND a.timestamp <= %s::timestamp AND a.timestamp >= %s::timestamp AND GROUP BY a.user LIMIT 5", [ftype, end, start])
+	# now we iterate
+	for index, word in enumerate(pres):
+
+        	# Nodes
+        	ret[word] = {}
+        	cur = c.fetchone()
+        	nodeuser = cur[0]
+		ret[word]["OSM Username"] = nodeuser
+		if ftype == 'node':
+			ret[word]["Nodes"] = cur[1]
+		elif ftype == 'way':
+			ret[word]["Ways"] = cur[1]
+		ret[word]["Rank"] = index + 1
+		ret[word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, start, end, ftype)
+
+		if user == nodeuser:
+			ret[word]['highlighted'] = 1
+
+	return ret
+
 
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
@@ -183,58 +212,26 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 
 	# leaderboards
 	# ways
-	ws = ob.defer('version','uid','changeset').filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='way')).values_list('user').annotate( \
-        	num=Count('user')).order_by('-num')
+	# ws = ob.defer('version','uid','changeset').filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='way')).values_list('user').annotate( \
+        	# num=Count('user')).order_by('-num')
 
 	# nodes
-	ns = ob.defer('version','uid','changeset').filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).values_list('user').annotate( \
-        	num=Count('user')).order_by('-num')
+	# ns = ob.defer('version','uid','changeset').filter(Q(timestamp__date__range=[start,end]) & Q(feature_type='node')).values_list('user').annotate( \
+        	# num=Count('user')).order_by('-num')
 
 	# put them in our stat object and find most freq. edited POI
-	foundnodes = False
-	foundways = False
-
-	pres = [ "first", "second", "third", "fourth", "fifth" ]
-
-	stat['Nodes'] = {}
-	stat['Ways'] = {}
+	# foundnodes = False
+	# foundways = False
 
 	d.deprint("going to enumerate over leaderboards")
 
-	for index, word in enumerate(pres):
-
-        	# Nodes
-        	nodeuser = ns[index][0]
-        	stat['Nodes'][word] = {}
-		stat['Nodes'][word]["OSM Username"] = nodeuser
-		stat['Nodes'][word]["Nodes"] = ns[index][1]
-		stat['Nodes'][word]["Rank"] = index + 1
-
-		# stat['Nodes'][word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, sstart, send, 'node')
-
-		if user == stat['Nodes'][word]['OSM Username']:
-			stat['Nodes'][word]['highlighted'] = 1
-			foundnodes = True
-
-		d.deprint(json.dumps(stat['Nodes'][word]))	# DEBUG
-
-		# Ways
-		wayuser = ws[index][0]
-		stat['Ways'][word] = {}
-		stat['Ways'][word]['OSM Username'] = wayuser
-		stat['Ways'][word]['Ways'] = ws[index][1]
-		stat['Ways'][word]['Rank'] = index + 1
-
-		# stat['Ways'][word]['Most Frequently Edited POI'] = most_frequent_poi(wayuser, sstart, send, 'way')
-
-		if user == wayuser:
-			stat['Ways'][word]['Highlighted'] = 1
-			foundways = True
-
-		d.deprint(json.dumps(stat['Ways'][word]))	# DEBUG
+	stat['Nodes'] = {}
+	stat['Ways'] = {}
+	stat['Nodes'] = top_five(user, sstart, send, 'node')
+	stat['Ways'] = top_five(user, sstart, send, 'way')
 
 	# user search nodes
-	if user != "" and not foundnodes:
+	if False: #user != "" and not foundnodes:
 
 		d.deprint("looking for user nodes")
 		try:
@@ -253,7 +250,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
 		d.deprint("found user nodes")
 
 	# user search ways
-	if user != "" and not foundways:
+	if False: #user != "" and not foundways:
 
 		d.deprint("looking for user ways")
 
