@@ -60,7 +60,7 @@ def top_five(user, sen):
 	found = False
 	ret = {}
 	pres = [ "first", "second", "third", "fourth", "fifth" ]
-	st = sen.raw("SELECT a.user, count(*) as id FROM osmhistorynepal_feature a GROUP BY a.user ORDER BY count LIMIT 5")
+	st = sen.raw("SELECT a.user, count(*) as id FROM osmhistorynepal_feature a GROUP BY a.user ORDER BY id LIMIT 5")
 	# now we iterate
 	for index, word in enumerate(pres):
         	ret[word] = {}
