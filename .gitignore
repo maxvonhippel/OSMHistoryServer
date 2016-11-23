@@ -10,4 +10,3 @@ __pycache__/
 local_settings.py
 MANIFEST
 *.egg-info
-nginx.conf
