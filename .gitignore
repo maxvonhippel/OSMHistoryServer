@@ -11,3 +11,4 @@ local_settings.py
 MANIFEST
 *.egg-info
 geodjango/static/*
+*pgweb*
