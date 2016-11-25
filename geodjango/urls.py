@@ -12,6 +12,9 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
+
+    for jsonselection, it looks like this
+    jsonselection/YYYY-MM-DDTHH:MM:SS,YYYY-MM-DDTHH:MM:SS/West/South/East/North/username
 """
 from django.conf import settings
 from django.conf.urls import include, url
