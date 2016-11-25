@@ -103,7 +103,7 @@ def user_names_view(request):
 	c.execute(query)
 	arr = c.fetchall()
 	ret = 'usernames: ['
-	for p in arr: ret += "\n" + '"' + p[0] + '",'
+	for p in arr: ret += "\n" + '"' + p[0].replace('"','\"') + '",'
 	ret = ret[:-1]
 	ret += "\n" + ']'
 	return HttpResponse(ret)
