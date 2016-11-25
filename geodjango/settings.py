@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_hstore',
     'osmhistorynepal',
     'django_extensions',
+    'corsheaders',
     'debug_toolbar',
     'debug_panel',
 ]
@@ -55,12 +56,15 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'debug_panel.middleware.DebugPanelMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 # some johnny settings
 CACHES = {
