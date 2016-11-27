@@ -102,7 +102,7 @@ def user_names_view(request):
 	query = 'SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC'
 	c.execute(query)
 	arr = c.fetchall()
-	ret = 'var usernames = ['
+	ret = '['
 	for p in arr: ret += "\n" + '"' + p[0].replace('"',r'\"') + '",' # fix later
 	ret = ret[:-1]
 	ret += "\n" + '];'
