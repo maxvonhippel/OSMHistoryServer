@@ -104,7 +104,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'nepaldata',
-        'USER': 'root',
+        'USER': 'kll',
     }
 }
 
