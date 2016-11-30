@@ -56,7 +56,7 @@ def most_frequent_poi(user, sen):
 
 
 # ---------------------------------- TOP FIVE MOST ACTIVE USERS IN SELECTION
-def top_five(user, sen):
+def top_five(user, sen, ftype):
     found = False
     ret = {}
     pres = [ "first", "second", "third", "fourth", "fifth" ]
@@ -92,77 +92,9 @@ def top_five(user, sen):
         return ""
     return ret
 
-
-
-# ---------------------------------- ACTUAL VIEWS ---------------------------------------------
-
-# ---------------------------------- ALL OF NEPAL USERS
-def user_names_view(request):
-    c = connection.cursor()
-    query = 'SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC'
-    c.execute(query)
-    arr = c.fetchall()
-    ret = '['
-    for p in arr: ret += "\n" + '"' + p[0].replace('"',r'\"') + '",' # fix later
-    ret = ret[:-1]
-    ret += "\n" + '];'
-    return HttpResponse(ret)
-
-
-# ---------------------------------- ALL OF NEPAL META DATA
-def nepal_statistics_view(request):
-    # get all the objects
-    ob = Feature.geoobjects
-    # make our json obj
-    nstat = {}
-    # cound the buildings, roads, schools, and hospitals
-    nstat = ob.values('feature_type','feature_id').aggregate( \
-        Building = Sum(Case(When(tags__contains=['building'], then = 1), \
-            default = 0, \
-            output_field = IntegerField())), \
-        Roads = Sum(Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-            Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), then = 1), \
-            default = 0, \
-            output_field = IntegerField())), \
-        Education = Sum(Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-                Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-            Q(tags__contains=['music_school'])), then = 1), \
-            default = 0, \
-            output_field = IntegerField())), \
-        Health = Sum(Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
-            Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
-            Q(tags__contains=['surgery'])), then = 1),
-            default = 0,
-            output_field = IntegerField())) )
-    # count the distinct mappers
-    nstat['Mappers'] = ob.values('uid').distinct().count()
-    # wrap it up in a json format and return it
-    return JsonResponse(nstat)
-
-# ---------------------------------- SELECTION WITHIN NEPAL, DATE RANGE META DATA
-def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
-
-    d = debug_tool() # DEBUG
-
-    # parse range
-    # eg 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
-    sstart,send = range.split(",")
-    start = dateutil.parser.parse(sstart)
-    end = dateutil.parser.parse(send)
-    # define our bounding box
-    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
-    # get all the objects
-    ndtmp = Feature.geoobjects.filter(Q(feature_type='node') & Q(point__intersects=box))
-    # get the unique ids from ndtmp as strings
-    strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).values_list('feature_id_str',flat=True).distinct()
-    # combine all features containing >=1 ok members with my existing list of ok nodes
-    rw = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Member.objects.filter(ref__in=strids)))
-    ob = rw | ndtmp
-
-    stat = {}
-
-    d.deprint("now time for selection")
-    selection = ob.only('tags', 'timestamp', 'feature_type', 'feature_id' \
+# ---------------------------------- selection json object for a card
+def selection_card(ob, start, end):
+    return ob.only('tags', 'timestamp', 'feature_type', 'feature_id' \
         ).filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
         Buildings_start = Sum( \
             Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
@@ -209,24 +141,81 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
             output_field=IntegerField())) \
         )
 
-    stat['Selection Statistics'] = selection
+# ---------------------------------- ACTUAL VIEWS ---------------------------------------------
 
-    d.deprint(json.dumps(stat['Selection Statistics'])) # DEBUG
+# ---------------------------------- ALL OF NEPAL USERS
+def user_names_view(request):
+    c = connection.cursor()
+    query = 'SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC'
+    c.execute(query)
+    arr = c.fetchall()
+    ret = '['
+    for p in arr: ret += "\n" + '"' + p[0].replace('"',r'\"') + '",' # fix later
+    ret = ret[:-1]
+    ret += "\n" + '];'
+    return HttpResponse(ret)
 
-    # leaderboards
 
+# ---------------------------------- ALL OF NEPAL META DATA
+def nepal_statistics_view(request):
+    
+    nstat = {}
+    # cound the buildings, roads, schools, and hospitals
+    nstat = Feature.geoobjects.values('feature_type','feature_id').aggregate( \
+        Building = Sum(Case(When(tags__contains=['building'], then = 1), \
+            default = 0, \
+            output_field = IntegerField())), \
+        Roads = Sum(Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+            Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), then = 1), \
+            default = 0, \
+            output_field = IntegerField())), \
+        Education = Sum(Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
+                Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
+            Q(tags__contains=['music_school'])), then = 1), \
+            default = 0, \
+            output_field = IntegerField())), \
+        Health = Sum(Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
+            Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
+            Q(tags__contains=['surgery'])), then = 1),
+            default = 0,
+            output_field = IntegerField())) )
+    # count the distinct mappers
+    nstat['Mappers'] = Feature.geoobjects.values('uid').distinct().count()
+    # wrap it up in a json format and return it
+    return JsonResponse(nstat)
+
+# ---------------------------------- SELECTION WITHIN NEPAL, DATE RANGE META DATA
+def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
+
+    d = debug_tool() # DEBUG
+
+    # parse range
+    # eg 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
+    sstart,send = range.split(",")
+    start = dateutil.parser.parse(sstart)
+    end = dateutil.parser.parse(send)
+    # define our bounding box
+    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
+    # get all the objects
+    ndtmp = Feature.geoobjects.filter(Q(feature_type='node') & Q(point__intersects=box))
+    # get the unique ids from ndtmp as strings
+    strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).values_list('feature_id_str',flat=True).distinct()
+    # combine all features containing >=1 ok members with my existing list of ok nodes
+    rw = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Member.objects.filter(ref__in=strids)))
+    ob = rw | ndtmp
+
+    stat = {}
     stat['Nodes'] = {}
     stat['Ways'] = {}
 
-    d.deprint("going to enumerate over nodes leaderboards")
+    d.deprint("now time for selection") # DEBUG
+    stat['Selection Statistics'] = selection(ob, start, end)
 
-    stat['Nodes'] = top_five(user, ndtmp)
+    d.deprint("going to enumerate over nodes leaderboards") # DEBUG
+    stat['Nodes'] = top_five(user, ndtmp, 'node')
 
-    d.deprint("going to enumerate over ways leaderboards")
+    d.deprint("going to enumerate over ways leaderboards") # DEBUG
+    stat['Ways'] = top_five(user, rw.filter(feature_type='way'), 'way')
 
-    stat['Ways'] = top_five(user, rw.filter(feature_type='way'))
-
-    d.deend()
-
-    # wrap it up in a json format
+    d.deend() # DEBUG
     return JsonResponse(stat)
