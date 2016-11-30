@@ -4,9 +4,6 @@
 # filepath start-date path-to-poly-file
 # eg, nepal.osh.pbf 2014-12-22-03:48:01 /media/sf_SharedFolderVM/nepal.poly.txt
 
-# this code currently untested, as of most recent change to use list of added ids for speed
-# may want to make even more efficient using http://stackoverflow.com/a/17735466/1586231 in the future!
-
 # basic python stuff
 import sys
 import copy
