@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'debug_toolbar',
     'debug_panel',
+    'gunicorn',
 ]
 
 MIDDLEWARE = [
