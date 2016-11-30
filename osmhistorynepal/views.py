@@ -60,7 +60,7 @@ def top_five(user, sen, ftype):
     found = False
     ret = {}
     pres = [ "first", "second", "third", "fourth", "fifth" ]
-    st = sen.raw("SELECT a.user, count(*) as id FROM osmhistorynepal_feature a GROUP BY a.user ORDER BY id LIMIT 5")
+    st = sen.values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
     # now we iterate
     for index, word in enumerate(pres):
         ret[word] = {}
@@ -76,12 +76,12 @@ def top_five(user, sen, ftype):
                     ret[word]["Rank"] = i
                     cur = t
             except: break
-        usr = cur.user
+        usr = cur[0]
         ret[word]["OSM Username"] = usr
         if ftype == 'node':
-            ret[word]["Nodes"] = cur.count
+            ret[word]["Nodes"] = cur[1]
         elif ftype == 'way':
-            ret[word]["Ways"] = cur.count
+            ret[word]["Ways"] = cur[1]
         ret[word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, sen)
 
         if user == usr:
