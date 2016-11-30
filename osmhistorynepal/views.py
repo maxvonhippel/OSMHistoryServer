@@ -209,7 +209,7 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
     stat['Ways'] = {}
 
     d.deprint("now time for selection") # DEBUG
-    stat['Selection Statistics'] = selection(ob, start, end)
+    stat['Selection Statistics'] = selection_card(ob, start, end)
 
     d.deprint("going to enumerate over nodes leaderboards") # DEBUG
     stat['Nodes'] = top_five(user, ndtmp, 'node')
