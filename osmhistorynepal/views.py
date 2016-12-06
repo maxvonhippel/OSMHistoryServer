@@ -117,10 +117,11 @@ def selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user):
     end = dateutil.parser.parse(send)
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     ob = Feature.geoobjects
-    if user == "":
+    if user:
         ob = Feature.geoobjects.filter(user=user)
-    return ob.filter(Q(timestamp__range=[start,end]) & Q(point__intersects=box)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
-        ).filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
+    # note that this does not include ways for now due to the point in box restriction
+    return ob.filter(Q(timestamp__lte=end) & Q(point__intersects=box)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
+        ).values('feature_type','feature_id').aggregate( \
         Buildings_start = Sum( \
         Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
         default = 0, \
