@@ -53,7 +53,7 @@ class debug_tool:
 # ---------------------------------- MOST FREQUENT POI FOR A USER
 def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user):
 
-	sstart,send = range.split(",")
+	sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
     return Feature.geoobjects.raw("SELECT value as id FROM ( " \
@@ -79,7 +79,7 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
 
     found = False
     ret = {}
-    sstart,send = range.split(",")
+    sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
@@ -117,7 +117,7 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
 # ---------------------------------- selection json object for a card
 def selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user):
 
-	sstart,send = range.split(",")
+	sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
@@ -187,9 +187,9 @@ def user_names_view(request):
     return HttpResponse(ret)
 
 # ---------------------------------- MOST FREQUENT POI FOR SELECTED USER
-def top_five_nodes_poi(request, range, mn_x, mn_y, mx_x, mx_y, first, second, third, fourth, fifth):
+def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second, third, fourth, fifth):
 
-    sstart,send = range.split(",")
+    sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
     ret = {}
@@ -226,13 +226,13 @@ def nepal_statistics_view(request):
     return JsonResponse(nstat)
 
 # ---------------------------------- SELECTION WITHIN NEPAL, DATE RANGE META DATA
-def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
+def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
 
     d = debug_tool() # DEBUG
 
     # parse range
     # eg 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
-    sstart,send = range.split(",")
+    sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
     # define our bounding box
