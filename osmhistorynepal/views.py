@@ -83,7 +83,7 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     pres = [ "first", "second", "third", "fourth", "fifth" ]
     st = Feature.geoobjects.filter(Q(timestamp__range=[start,end]) & Q(feature_type='way') & Q(point__intersects=box) \
-    	).values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
+        ).values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
     # now we iterate
     for index, word in enumerate(pres):
         ret[word] = {}
@@ -112,13 +112,13 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
 
 # ---------------------------------- selection json object for a card
 def selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user):
-	sstart,send = timerange.split(",")
+    sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     ob = Feature.geoobjects
     if !user or user == "":
-    	ob = Feature.geoobjects.filter(user=user)
+        ob = Feature.geoobjects.filter(user=user)
     return ob.filter(Q(timestamp__range=[start,end]) & Q(point__intersects=box)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
         ).filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
         Buildings_start = Sum( \
