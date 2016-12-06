@@ -66,7 +66,10 @@ def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user, ftype):
 
 # ---------------------------------- TOP FIVE MOST ACTIVE USERS IN SELECTION
 def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
+    print("top five ways for: ", timerange, mn_x, mn_y, mx_x, mx_y, user)
     found = False
+    if not user or user == ""
+        found = True
     ret = {}
     sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
@@ -76,12 +79,14 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
     st = Feature.geoobjects.filter(Q(timestamp__range=[start,end]) & Q(feature_type='way') & Q(point__intersects=box) \
         ).values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
     # now we iterate
+    print("iterating over first, second, third, fourth, and fifth")
     for index, word in enumerate(pres):
         ret[word] = {}
         ret[word]["Rank"] = index + 1
         i = 5
         cur = st[index]
         while index == 4 and not found:
+            print("... finding user")
             i += 1
             try:
                 t = st[i]
@@ -92,6 +97,7 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
             except: break
         usr = cur[0]
         ret[word]["OSM Username"] = usr
+        print("username: ", usr)
         ret[word]["Ways"] = cur[1]
         curpoi = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, nodeuser, 'way')
         print("curpoi for ways: ", curpoi)
@@ -101,6 +107,7 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
             found = True
     if ret == {}:
         return ""
+    print("returning top 5 ways")
     return ret
 
 # ---------------------------------- selection json object for a card
