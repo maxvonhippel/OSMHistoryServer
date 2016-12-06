@@ -68,7 +68,7 @@ def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user, ftype):
 def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
     print("top five ways for: ", timerange, mn_x, mn_y, mx_x, mx_y, user)
     found = False
-    if not user or user == ""
+    if not user:
         found = True
     ret = {}
     sstart,send = timerange.split(",")
