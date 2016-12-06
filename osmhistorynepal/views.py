@@ -52,6 +52,7 @@ class debug_tool:
 
 # ---------------------------------- MOST FREQUENT POI FOR A USER
 def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user):
+    print("finding most frequent poi for: ", user)
     sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
@@ -182,12 +183,15 @@ def user_names_view(request):
 
 # ---------------------------------- MOST FREQUENT POI FOR SELECTED USER
 def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second, third, fourth, fifth):
+    print("starting top five nodes poi")
     sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
     ret = {}
+    print("parsing vals:")
     for val in [ first, second, third, fourth, fifth ]:
-        ret[val] = append(most_frequent_poi(range, mn_x, mn_y, mx_x, mx_y, val))
+        print("parsing val: ", val)
+        ret[val] = most_frequent_poi(range, mn_x, mn_y, mx_x, mx_y, val)
     return JsonResponse(ret)
 
 # ---------------------------------- ALL OF NEPAL META DATA
