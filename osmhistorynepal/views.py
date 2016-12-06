@@ -52,31 +52,29 @@ class debug_tool:
 
 # ---------------------------------- MOST FREQUENT POI FOR A USER
 def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user):
-
-	sstart,send = timerange.split(",")
+    sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
     return Feature.geoobjects.raw("SELECT value as id FROM ( " \
-            "SELECT value, count(*) FROM ( " \
-            "SELECT b.feature_id, b.feature_type, b.timestamp, b.user, " \
-            "svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', " \
-            "'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', " \
-            "'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', " \
-            "historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', " \
-            'office', 'power', 'public_transport', 'railway', 'route', 'shop', " \
-            'sport', 'waterway', 'tunnel', 'service'])) " \
-            "AS value FROM osmhistorynepal_feature b WHERE b.user = %s " \
-            "AND b.timestamp >= %s::date AND b.timestamp <= %s::date " \
-            "AND ST_X(b.point::geometry) >= %d AND ST_X(b.point::geometry) <= %d "\
-            "AND ST_Y(b.point::geometry) >= %d AND ST_Y(b.point::geometry) <= %d) " \
-            "AS stat WHERE NOT value IN ( " \
-            "'yes', 'no', 'primary', 'secondary', 'unclassified') " \
-            "AND NOT value ~ '^[0-9]+$' GROUP BY value " \
-            "ORDER BY count DESC, value LIMIT 1 ) AS vc", user, start, end, mn_x, mx_x, mn_y, mx_y)[:1]
+        "SELECT value, count(*) FROM ( " \
+        "SELECT b.feature_id, b.feature_type, b.timestamp, b.user, " \
+        "svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', " \
+        "'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', " \
+        "'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', " \
+        "historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', " \
+        'office', 'power', 'public_transport', 'railway', 'route', 'shop', " \
+        'sport', 'waterway', 'tunnel', 'service'])) " \
+        "AS value FROM osmhistorynepal_feature b WHERE b.user = %s " \
+        "AND b.timestamp >= %s::date AND b.timestamp <= %s::date " \
+        "AND ST_X(b.point::geometry) >= %d AND ST_X(b.point::geometry) <= %d "\
+        "AND ST_Y(b.point::geometry) >= %d AND ST_Y(b.point::geometry) <= %d) " \
+        "AS stat WHERE NOT value IN ( " \
+        "'yes', 'no', 'primary', 'secondary', 'unclassified') " \
+        "AND NOT value ~ '^[0-9]+$' GROUP BY value " \
+        "ORDER BY count DESC, value LIMIT 1 ) AS vc", user, start, end, mn_x, mx_x, mn_y, mx_y)[:1]
 
 # ---------------------------------- TOP FIVE MOST ACTIVE USERS IN SELECTION
 def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
-
     found = False
     ret = {}
     sstart,send = timerange.split(",")
@@ -105,18 +103,15 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
         ret[word]["OSM Username"] = usr
         ret[word]["Ways"] = cur[1]
         ret[word]['Most Frequently Edited POI'] = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, nodeuser):
-
         if user == usr:
             ret[word]['highlighted'] = 1
             found = True
-
     if ret == {}:
         return ""
     return ret
 
 # ---------------------------------- selection json object for a card
 def selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user):
-
 	sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
@@ -127,55 +122,54 @@ def selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user):
     return ob.filter(Q(timestamp__range=[start,end]) & Q(point__intersects=box)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
         ).filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
         Buildings_start = Sum( \
-            Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
-            default = 0, \
-            output_field=IntegerField())), \
+        Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
+        default = 0, \
+        output_field=IntegerField())), \
         Roads_start = Sum( \
-            Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-            Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])) & \
-            Q(timestamp__date__lte=start), then = 1), \
-            default = 0, \
-            output_field=IntegerField())), \
+        Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+        Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])) & \
+        Q(timestamp__date__lte=start), then = 1), \
+        default = 0, \
+        output_field=IntegerField())), \
         Education_start = Sum( \
-                Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-            Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-            Q(tags__contains=['music_school'])) & Q(timestamp__date__lte=start), then = 1), \
-            default = 0, \
-            output_field=IntegerField())), \
+        Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
+        Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
+        Q(tags__contains=['music_school'])) & Q(timestamp__date__lte=start), then = 1), \
+        default = 0, \
+        output_field=IntegerField())), \
         Health_start = Sum( \
-            Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
-            Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
-            Q(tags__contains=['surgery'])) & Q(timestamp__date__lte=start), then = 1), \
-            default = 0, \
-            output_field=IntegerField())), \
+        Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
+        Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
+        Q(tags__contains=['surgery'])) & Q(timestamp__date__lte=start), then = 1), \
+        default = 0, \
+        output_field=IntegerField())), \
         Buildings_end = Sum( \
-            Case(When(tags__contains=['building'], then = 1), \
-            default = 0, \
-            output_field=IntegerField())), \
-            Roads_end = Sum( \
-            Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-            Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), then = 1), \
-            default = 0, \
-            output_field=IntegerField())), \
-            Education_end = Sum( \
-            Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-            Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-            Q(tags__contains=['music_school'])), then = 1), \
-            default = 0, \
-            output_field=IntegerField())), \
+        Case(When(tags__contains=['building'], then = 1), \
+        default = 0, \
+        output_field=IntegerField())), \
+        Roads_end = Sum( \
+        Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+        Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), then = 1), \
+        default = 0, \
+        output_field=IntegerField())), \
+        Education_end = Sum( \
+        Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
+        Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
+        Q(tags__contains=['music_school'])), then = 1), \
+        default = 0, \
+        output_field=IntegerField())), \
         Health_end = Sum( \
-            Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
-            Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
-            Q(tags__contains=['surgery'])), then = 1), \
-            default = 0, \
-            output_field=IntegerField())) \
+        Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
+        Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
+        Q(tags__contains=['surgery'])), then = 1), \
+        default = 0, \
+        output_field=IntegerField())) \
         )
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
 
 # ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
-
     c = connection.cursor()
     query = 'SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC'
     c.execute(query)
@@ -188,7 +182,6 @@ def user_names_view(request):
 
 # ---------------------------------- MOST FREQUENT POI FOR SELECTED USER
 def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second, third, fourth, fifth):
-
     sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
@@ -198,28 +191,27 @@ def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second
     return JsonResponse(ret)
 
 # ---------------------------------- ALL OF NEPAL META DATA
-def nepal_statistics_view(request):
-    
+def nepal_statistics_view(request):  
     nstat = {}
     # cound the buildings, roads, schools, and hospitals
     nstat = Feature.geoobjects.values('feature_type','feature_id').aggregate( \
         Building = Sum(Case(When(tags__contains=['building'], then = 1), \
-            default = 0, \
-            output_field = IntegerField())), \
+        default = 0, \
+        output_field = IntegerField())), \
         Roads = Sum(Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-            Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), then = 1), \
-            default = 0, \
-            output_field = IntegerField())), \
+        Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), then = 1), \
+        default = 0, \
+        output_field = IntegerField())), \
         Education = Sum(Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-                Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-            Q(tags__contains=['music_school'])), then = 1), \
-            default = 0, \
-            output_field = IntegerField())), \
+        Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
+        Q(tags__contains=['music_school'])), then = 1), \
+        default = 0, \
+        output_field = IntegerField())), \
         Health = Sum(Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
-            Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
-            Q(tags__contains=['surgery'])), then = 1),
-            default = 0,
-            output_field = IntegerField())) )
+        Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
+        Q(tags__contains=['surgery'])), then = 1),
+        default = 0,
+        output_field = IntegerField())) )
     # count the distinct mappers
     nstat['Mappers'] = Feature.geoobjects.values('uid').distinct().count()
     # wrap it up in a json format and return it
@@ -227,9 +219,7 @@ def nepal_statistics_view(request):
 
 # ---------------------------------- SELECTION WITHIN NEPAL, DATE RANGE META DATA
 def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
-
     d = debug_tool() # DEBUG
-
     # parse range
     # eg 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
     sstart,send = timerange.split(",")
@@ -244,19 +234,14 @@ def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
     # combine all features containing >=1 ok members with my existing list of ok nodes
     rw = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Member.objects.filter(ref__in=strids)))
     ob = rw | ndtmp
-
     stat = {}
     stat['Nodes'] = {}
     stat['Ways'] = {}
-
     d.deprint("now time for selection") # DEBUG
     stat['Selection Statistics'] = selection_card(ob, start, end)
-
     # d.deprint("going to enumerate over nodes leaderboards") # DEBUG
     # stat['Nodes'] = top_five(user, ndtmp, 'node')
-
     d.deprint("going to enumerate over ways leaderboards") # DEBUG
     stat['Ways'] = top_five(range, mn_x, mn_y, mx_x, mx_y, user)
-
     d.deend() # DEBUG
     return JsonResponse(stat)
