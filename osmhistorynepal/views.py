@@ -102,7 +102,7 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
         usr = cur[0]
         ret[word]["OSM Username"] = usr
         ret[word]["Ways"] = cur[1]
-        ret[word]['Most Frequently Edited POI'] = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, nodeuser):
+        ret[word]['Most Frequently Edited POI'] = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, nodeuser)
         if user == usr:
             ret[word]['highlighted'] = 1
             found = True
