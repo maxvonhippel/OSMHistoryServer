@@ -117,7 +117,7 @@ def selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user):
     end = dateutil.parser.parse(send)
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     ob = Feature.geoobjects
-    if !user or user == "":
+    if user == "":
         ob = Feature.geoobjects.filter(user=user)
     return ob.filter(Q(timestamp__range=[start,end]) & Q(point__intersects=box)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
         ).filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
