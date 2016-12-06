@@ -117,7 +117,9 @@ def selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user):
     end = dateutil.parser.parse(send)
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     ob = Feature.geoobjects
+    print("in selection_card, params:", timerange, mn_x, mn_y, mx_x, mx_y)
     if user:
+        print("in selection_card, user: ", user)
         ob = Feature.geoobjects.filter(user=user)
     # note that this does not include ways for now due to the point in box restriction
     return ob.filter(Q(timestamp__lte=end) & Q(point__intersects=box)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
