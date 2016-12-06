@@ -56,12 +56,15 @@ def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user, ftype):
     sstart,send = timerange.split(",")
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
-    arr = [ user, start, end, mn_x, mx_x, mn_y, mx_y ]
-    print("parsing most frequent poi for: ", arr)
+    print("parsing most frequent poi for: ", user, start, end, mn_x, mx_x, mn_y, mx_y)
     ret = Feature.geoobjects.raw("SELECT value as id FROM ( SELECT value, count(*) FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.feature_type = %s AND b.timestamp >= %s::date AND b.timestamp <= %s::date AND ST_X(b.point::geometry) >= %s::int AND ST_X(b.point::geometry) <= %s::int AND ST_Y(b.point::geometry) >= %s::int AND ST_Y(b.point::geometry) <= %s::int) AS stat WHERE NOT value IN ( 'yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [user, ftype, start, end, mn_x, mx_x, mn_y, mx_y])
-    if ret != []:
-        return ret[0].id
-    return "none"
+    try:
+        print(ret)
+        print(ret[0])
+        print(ret[0].id)
+    except NameError:
+        return "none"
+    return ret[0].id
 
 # ---------------------------------- TOP FIVE MOST ACTIVE USERS IN SELECTION
 def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
