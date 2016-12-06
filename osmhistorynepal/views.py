@@ -14,12 +14,14 @@ import dateutil.parser
 from django.utils import timezone
 from django.db import connection
 import time
+import pytz
 from collections import Counter
 
 # ---------------------------------- HELPER FUNCTIONS ---------------------------------------------
 
 # ---------------------------------- DIFF FOR TIMESTAMPS
 # http://stackoverflow.com/a/37471918/1586231
+# used by the debug_tool
 def diff(t_a, t_b):
     t_diff = relativedelta(t_a, t_b)
     return '{h}h {m}m {s}s {ss}ms'.format(h=t_diff.hours, m=t_diff.minutes, s=t_diff.seconds, ss=t_diff.microseconds)
@@ -54,10 +56,24 @@ class debug_tool:
 def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user, ftype):
     print("finding most frequent poi for: ", user)
     sstart,send = timerange.split(",")
-    start = dateutil.parser.parse(sstart)
-    end = dateutil.parser.parse(send)
-    print("parsing most frequent poi for: ", user, start, end, mn_x, mx_x, mn_y, mx_y)
-    ret = Feature.geoobjects.raw("SELECT value as id FROM ( SELECT value, count(*) FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.feature_type = %s AND b.timestamp >= %s::date AND b.timestamp <= %s::date AND ST_X(b.point::geometry) >= %s::int AND ST_X(b.point::geometry) <= %s::int AND ST_Y(b.point::geometry) >= %s::int AND ST_Y(b.point::geometry) <= %s::int) AS stat WHERE NOT value IN ( 'yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [user, ftype, start, end, mn_x, mx_x, mn_y, mx_y])
+    # the timezone chosen is totally arbitrary
+    start = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(sstart))
+    end = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(send))
+    arr = [ user, ftype, start, end, mn_x, mx_x, mn_y, mx_y ]
+    print("parsing most frequent poi for: ", arr)
+    ret = Feature.geoobjects.raw("SELECT value as id FROM ( SELECT value, count(*)" \
+        " FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals (" \
+        " SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway'," \
+        " 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft'," \
+        " 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure'," \
+        " 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway'," \
+        " 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM" \
+        " osmhistorynepal_feature b WHERE b.user = %s AND b.feature_type = %s" \
+        " AND b.timestamp >= %s::date AND b.timestamp <= %s::date AND" \
+        " ST_X(b.point::geometry) >= %s::int AND ST_X(b.point::geometry) <= %s::int" \
+        " AND ST_Y(b.point::geometry) >= %s::int AND ST_Y(b.point::geometry) <= %s::int)" \
+        " AS stat WHERE NOT value IN ( 'yes', 'no', 'primary', 'secondary', 'unclassified')" \
+        " AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", arr)
     try:
         ret[0]
     except IndexError:
@@ -67,12 +83,16 @@ def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user, ftype):
 # ---------------------------------- TOP FIVE MOST ACTIVE USERS IN SELECTION
 def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, ob, user):
     print("top five ways for: ", timerange, mn_x, mn_y, mx_x, mx_y, user)
+    sstart,send = timerange.split(",")
+    # the timezone chosen is totally arbitrary
+    start = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(sstart))
+    end = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(send))
     found = False
     if not user:
         found = True
     ret = {}
     pres = [ "first", "second", "third", "fourth", "fifth" ]
-    st = ob.filter(feature_type='way').values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
+    st = ob.filter(Q(feature_type='way') & Q(timestamp__range=[start,end])).values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
     # now we iterate
     print("iterating over first, second, third, fourth, and fifth")
     for index, word in enumerate(pres):
@@ -123,8 +143,9 @@ def user_names_view(request):
 def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second, third, fourth, fifth):
     print("starting top five nodes poi")
     sstart,send = timerange.split(",")
-    start = dateutil.parser.parse(sstart)
-    end = dateutil.parser.parse(send)
+    # the timezone chosen is totally arbitrary
+    start = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(sstart))
+    end = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(send))
     ret = {}
     print("parsing vals:")
     for val in [ first, second, third, fourth, fifth ]:
@@ -165,8 +186,9 @@ def nepal_statistics_view(request):
 def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
     d = debug_tool() # DEBUG
     sstart,send = timerange.split(",")
-    start = dateutil.parser.parse(sstart)
-    end = dateutil.parser.parse(send)
+    # the timezone chosen is totally arbitrary
+    start = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(sstart))
+    end = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(send))
     # define our bounding box
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     # get all the objects
