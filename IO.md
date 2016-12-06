@@ -104,11 +104,15 @@ Example url:
 
 > `http://139.59.37.112:8080/jsonselection/`
 > 
-> `2000-04-04T03:03:07,2016-04-02T05:02:04/`
-> 
-> `0/0/100/100/Samely/`
+> `2000-04-04T03:03:07,2016-04-02T05:02:04/0/0/100/100//`
 
 Example output:
+
+> `{"Health_end": 0, "Roads_end": 2378, "Education_end": 1,`
+> 
+> `"Buildings_start": 0, "Roads_start": 0, "Education_start": 0,`
+> 
+> `"Buildings_end": 22433, "Health_start": 0}`
 
 Urls.py scheme:
 
@@ -118,4 +122,4 @@ Urls.py scheme:
 > 
 > `(?P<user>\w+)/', json_views.selection_statistics_view),`
 
-Time:
+Time: ~ 68 seconds

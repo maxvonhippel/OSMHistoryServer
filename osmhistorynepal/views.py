@@ -105,46 +105,6 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, ob, user):
     print("returning top 5 ways")
     return ret
 
-# ---------------------------------- selection json object for a card
-def selection_card(ob, start, end, user):
-    if user:
-        print("in selection_card, user: ", user)
-        ob = ob.filter(user=user)
-    # note that this does not include ways for now due to the point in box restriction
-    return ob.filter(Q(timestamp__lte=end)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
-        ).values('feature_type','feature_id').aggregate( \
-        Buildings_start = Sum( \
-        Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
-        default = 0, output_field=IntegerField())), \
-        Roads_start = Sum( \
-        Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-        Q(tags__contains=['highway']) | Q(tags__contains=['road']) ) & \
-        Q(timestamp__date__lte=start), then = 1), \
-        default = 0, output_field=IntegerField())), \
-        Education_start = Sum( \
-        Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-        Q(tags__contains=['university']) ) & \
-        Q(timestamp__date__lte=start), then = 1), \
-        default = 0, output_field=IntegerField())), \
-        Health_start = Sum( \
-        Case(When((Q(tags__contains=['hospital']) | \
-        Q(tags__contains=['clinic'])) & Q(timestamp__date__lte=start), then = 1), \
-        default = 0, output_field=IntegerField())), \
-        Buildings_end = Sum( \
-        Case(When(tags__contains=['building'], then = 1), \
-        default = 0, output_field=IntegerField())), \
-        Roads_end = Sum( \
-        Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-        Q(tags__contains=['highway']) | Q(tags__contains=['road'])), then = 1), \
-        default = 0, output_field=IntegerField())), \
-        Education_end = Sum( \
-        Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-        Q(tags__contains=['university']) ), then = 1), \
-        default = 0, output_field=IntegerField())), \
-        Health_end = Sum( \
-        Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['clinic'])), then = 1), \
-        default = 0, output_field=IntegerField())) )
-
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
 
 # ---------------------------------- ALL OF NEPAL USERS
@@ -216,8 +176,43 @@ def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
     # combine all features containing >=1 ok members with my existing list of ok nodes
     rw = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Member.objects.filter(ref__in=strids)))
     ob = rw | ndtmp
-    d.deprint("now time for selection") # DEBUG 
-    stat = selection_card(ob, start, end, user)
+    d.deprint("now time for selection") # DEBUG
+    if user:
+        print("in selection_card, user: ", user)
+        ob = ob.filter(user=user) 
+    stat = ob.filter(Q(timestamp__lte=end)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
+        ).values('feature_type','feature_id').aggregate( \
+        Buildings_start = Sum( \
+        Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
+        default = 0, output_field=IntegerField())), \
+        Roads_start = Sum( \
+        Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+        Q(tags__contains=['highway']) | Q(tags__contains=['road']) ) & \
+        Q(timestamp__date__lte=start), then = 1), \
+        default = 0, output_field=IntegerField())), \
+        Education_start = Sum( \
+        Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
+        Q(tags__contains=['university']) ) & \
+        Q(timestamp__date__lte=start), then = 1), \
+        default = 0, output_field=IntegerField())), \
+        Health_start = Sum( \
+        Case(When((Q(tags__contains=['hospital']) | \
+        Q(tags__contains=['clinic'])) & Q(timestamp__date__lte=start), then = 1), \
+        default = 0, output_field=IntegerField())), \
+        Buildings_end = Sum( \
+        Case(When(tags__contains=['building'], then = 1), \
+        default = 0, output_field=IntegerField())), \
+        Roads_end = Sum( \
+        Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
+        Q(tags__contains=['highway']) | Q(tags__contains=['road'])), then = 1), \
+        default = 0, output_field=IntegerField())), \
+        Education_end = Sum( \
+        Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
+        Q(tags__contains=['university']) ), then = 1), \
+        default = 0, output_field=IntegerField())), \
+        Health_end = Sum( \
+        Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['clinic'])), then = 1), \
+        default = 0, output_field=IntegerField())) )
     d.deend() # DEBUG
     # stat = {}
     # stat['Ways'] = {}
