@@ -51,16 +51,41 @@ class debug_tool:
         print(printstatement)
 
 # ---------------------------------- MOST FREQUENT POI FOR A USER
-def most_frequent_poi(user, sen):
-    return sen.raw("SELECT value as id FROM ( SELECT value, count(*) FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s ) AS stat WHERE NOT value IN ('yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", user)[:1]
+def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user):
 
+	sstart,send = range.split(",")
+    start = dateutil.parser.parse(sstart)
+    end = dateutil.parser.parse(send)
+    return Feature.geoobjects.raw("SELECT value as id FROM ( " \
+            "SELECT value, count(*) FROM ( " \
+            "SELECT b.feature_id, b.feature_type, b.timestamp, b.user, " \
+            "svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', " \
+            "'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', " \
+            "'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', " \
+            "historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', " \
+            'office', 'power', 'public_transport', 'railway', 'route', 'shop', " \
+            'sport', 'waterway', 'tunnel', 'service'])) " \
+            "AS value FROM osmhistorynepal_feature b WHERE b.user = %s " \
+            "AND b.timestamp >= %s::date AND b.timestamp <= %s::date " \
+            "AND ST_X(b.point::geometry) >= %d AND ST_X(b.point::geometry) <= %d "\
+            "AND ST_Y(b.point::geometry) >= %d AND ST_Y(b.point::geometry) <= %d) " \
+            "AS stat WHERE NOT value IN ( " \
+            "'yes', 'no', 'primary', 'secondary', 'unclassified') " \
+            "AND NOT value ~ '^[0-9]+$' GROUP BY value " \
+            "ORDER BY count DESC, value LIMIT 1 ) AS vc", user, start, end, mn_x, mx_x, mn_y, mx_y)[:1]
 
 # ---------------------------------- TOP FIVE MOST ACTIVE USERS IN SELECTION
-def top_five(user, sen, ftype):
+def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
+
     found = False
     ret = {}
+    sstart,send = range.split(",")
+    start = dateutil.parser.parse(sstart)
+    end = dateutil.parser.parse(send)
+    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     pres = [ "first", "second", "third", "fourth", "fifth" ]
-    st = sen.values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
+    st = Feature.geoobjects.filter(Q(timestamp__range=[start,end]) & Q(feature_type='way') & Q(point__intersects=box) \
+    	).values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
     # now we iterate
     for index, word in enumerate(pres):
         ret[word] = {}
@@ -78,11 +103,8 @@ def top_five(user, sen, ftype):
             except: break
         usr = cur[0]
         ret[word]["OSM Username"] = usr
-        if ftype == 'node':
-            ret[word]["Nodes"] = cur[1]
-        elif ftype == 'way':
-            ret[word]["Ways"] = cur[1]
-        ret[word]['Most Frequently Edited POI'] = most_frequent_poi(nodeuser, sen)
+        ret[word]["Ways"] = cur[1]
+        ret[word]['Most Frequently Edited POI'] = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, nodeuser):
 
         if user == usr:
             ret[word]['highlighted'] = 1
@@ -93,8 +115,16 @@ def top_five(user, sen, ftype):
     return ret
 
 # ---------------------------------- selection json object for a card
-def selection_card(ob, start, end):
-    return ob.only('tags', 'timestamp', 'feature_type', 'feature_id' \
+def selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user):
+
+	sstart,send = range.split(",")
+    start = dateutil.parser.parse(sstart)
+    end = dateutil.parser.parse(send)
+    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
+    ob = Feature.geoobjects
+    if !user or user == "":
+    	ob = Feature.geoobjects.filter(user=user)
+    return ob.filter(Q(timestamp__range=[start,end]) & Q(point__intersects=box)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
         ).filter(timestamp__lte=end).values('feature_type','feature_id').aggregate( \
         Buildings_start = Sum( \
             Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
@@ -145,6 +175,7 @@ def selection_card(ob, start, end):
 
 # ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
+
     c = connection.cursor()
     query = 'SELECT DISTINCT a.user FROM osmhistorynepal_feature a ORDER BY a.user ASC'
     c.execute(query)
@@ -155,6 +186,16 @@ def user_names_view(request):
     ret += "\n" + '];'
     return HttpResponse(ret)
 
+# ---------------------------------- MOST FREQUENT POI FOR SELECTED USER
+def top_five_nodes_poi(request, range, mn_x, mn_y, mx_x, mx_y, first, second, third, fourth, fifth):
+
+    sstart,send = range.split(",")
+    start = dateutil.parser.parse(sstart)
+    end = dateutil.parser.parse(send)
+    ret = {}
+    for val in [ first, second, third, fourth, fifth ]:
+        ret[val] = append(most_frequent_poi(range, mn_x, mn_y, mx_x, mx_y, val))
+    return JsonResponse(ret)
 
 # ---------------------------------- ALL OF NEPAL META DATA
 def nepal_statistics_view(request):
@@ -211,11 +252,11 @@ def selection_statistics_view(request, range, mn_x, mn_y, mx_x, mx_y, user):
     d.deprint("now time for selection") # DEBUG
     stat['Selection Statistics'] = selection_card(ob, start, end)
 
-    d.deprint("going to enumerate over nodes leaderboards") # DEBUG
-    stat['Nodes'] = top_five(user, ndtmp, 'node')
+    # d.deprint("going to enumerate over nodes leaderboards") # DEBUG
+    # stat['Nodes'] = top_five(user, ndtmp, 'node')
 
     d.deprint("going to enumerate over ways leaderboards") # DEBUG
-    stat['Ways'] = top_five(user, rw.filter(feature_type='way'), 'way')
+    stat['Ways'] = top_five(range, mn_x, mn_y, mx_x, mx_y, user)
 
     d.deend() # DEBUG
     return JsonResponse(stat)
