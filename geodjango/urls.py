@@ -25,10 +25,10 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^usernames/', json_views.user_names_view),
     # request, range, mn_x, mn_y, mx_x, mx_y, first, second, third, fourth, fifth
-    url(r'^topnodes/(?P<range>([0-9T,-:+])+)/(?P<mn_x>\d+)/(?P<mn_y>\d+)/(?P<mx_x>\d+)/(?P<mx_y>\d+)/(?P<first>\w+)/(?P<second>\w+)/(?P<third>\w+)/(?P<fourth>\w+)/(?P<fifth>\w+)/', json_views.top_five_nodes_poi),
+    url(r'^topnodes/(?P<timerange>([0-9T,-:+])+)/(?P<mn_x>\d+)/(?P<mn_y>\d+)/(?P<mx_x>\d+)/(?P<mx_y>\d+)/(?P<first>\w+)/(?P<second>\w+)/(?P<third>\w+)/(?P<fourth>\w+)/(?P<fifth>\w+)/', json_views.top_five_nodes_poi),
     url(r'^jsoncountry/', json_views.nepal_statistics_view),
-    url(r'^jsonselection/(?P<range>([0-9T,-:+])+)/(?P<mn_x>\d+)/(?P<mn_y>\d+)/(?P<mx_x>\d+)/(?P<mx_y>\d+)/(?P<user>\w+)/', json_views.selection_statistics_view),
-    url(r'^poinodes/(?P<range>([0-9T,-:+])+/(?P<mn_x>\d+)/(?P<mn_y>\d+)/(?P<mx_x>\d+)/(?P<mx_y>\d+)/(?P<first>\w+)/(?P<second>\w+)/(?P<third>\w+)/(?P<fourth>\w+)/(?P<fifth>\w+))', json_views.top_five_poi),
+    url(r'^jsonselection/(?P<timerange>([0-9T,-:+])+)/(?P<mn_x>\d+)/(?P<mn_y>\d+)/(?P<mx_x>\d+)/(?P<mx_y>\d+)/(?P<user>\w+)/', json_views.selection_statistics_view),
+    url(r'^poinodes/(?P<timerange>([0-9T,-:+])+/(?P<mn_x>\d+)/(?P<mn_y>\d+)/(?P<mx_x>\d+)/(?P<mx_y>\d+)/(?P<first>\w+)/(?P<second>\w+)/(?P<third>\w+)/(?P<fourth>\w+)/(?P<fifth>\w+))', json_views.top_five_poi),
 ]
 
 if settings.DEBUG:
