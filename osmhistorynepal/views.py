@@ -65,19 +65,14 @@ def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user, ftype):
     return ret[0].id
 
 # ---------------------------------- TOP FIVE MOST ACTIVE USERS IN SELECTION
-def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
+def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, ob, user):
     print("top five ways for: ", timerange, mn_x, mn_y, mx_x, mx_y, user)
     found = False
     if not user:
         found = True
     ret = {}
-    sstart,send = timerange.split(",")
-    start = dateutil.parser.parse(sstart)
-    end = dateutil.parser.parse(send)
-    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     pres = [ "first", "second", "third", "fourth", "fifth" ]
-    st = Feature.geoobjects.filter(Q(timestamp__range=[start,end]) & Q(feature_type='way') & Q(point__intersects=box) \
-        ).values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
+    st = ob.filter(feature_type='way').values_list('user').annotate(count=Count('user')).order_by('-count')[:5]
     # now we iterate
     print("iterating over first, second, third, fourth, and fifth")
     for index, word in enumerate(pres):
@@ -111,63 +106,44 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
     return ret
 
 # ---------------------------------- selection json object for a card
-def selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user):
-    sstart,send = timerange.split(",")
-    start = dateutil.parser.parse(sstart)
-    end = dateutil.parser.parse(send)
-    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
-    ob = Feature.geoobjects
-    print("in selection_card, params:", timerange, mn_x, mn_y, mx_x, mx_y)
+def selection_card(ob, start, end, user):
     if user:
         print("in selection_card, user: ", user)
-        ob = Feature.geoobjects.filter(user=user)
+        ob = ob.filter(user=user)
     # note that this does not include ways for now due to the point in box restriction
-    return ob.filter(Q(timestamp__lte=end) & Q(point__intersects=box)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
+    return ob.filter(Q(timestamp__lte=end)).only('tags', 'timestamp', 'feature_type', 'feature_id' \
         ).values('feature_type','feature_id').aggregate( \
         Buildings_start = Sum( \
         Case(When(timestamp__date__lte=start, tags__contains=['building'], then = 1), \
-        default = 0, \
-        output_field=IntegerField())), \
+        default = 0, output_field=IntegerField())), \
         Roads_start = Sum( \
         Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-        Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])) & \
+        Q(tags__contains=['highway']) | Q(tags__contains=['road']) ) & \
         Q(timestamp__date__lte=start), then = 1), \
-        default = 0, \
-        output_field=IntegerField())), \
+        default = 0, output_field=IntegerField())), \
         Education_start = Sum( \
         Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-        Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-        Q(tags__contains=['music_school'])) & Q(timestamp__date__lte=start), then = 1), \
-        default = 0, \
-        output_field=IntegerField())), \
+        Q(tags__contains=['university']) ) & \
+        Q(timestamp__date__lte=start), then = 1), \
+        default = 0, output_field=IntegerField())), \
         Health_start = Sum( \
-        Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
-        Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
-        Q(tags__contains=['surgery'])) & Q(timestamp__date__lte=start), then = 1), \
-        default = 0, \
-        output_field=IntegerField())), \
+        Case(When((Q(tags__contains=['hospital']) | \
+        Q(tags__contains=['clinic'])) & Q(timestamp__date__lte=start), then = 1), \
+        default = 0, output_field=IntegerField())), \
         Buildings_end = Sum( \
         Case(When(tags__contains=['building'], then = 1), \
-        default = 0, \
-        output_field=IntegerField())), \
+        default = 0, output_field=IntegerField())), \
         Roads_end = Sum( \
         Case(When((Q(tags__contains={'bridge':'yes'}) | Q(tags__contains={'tunnel':'yes'}) | \
-        Q(tags__contains=['highway']) | Q(tags__contains=['tracktype'])), then = 1), \
-        default = 0, \
-        output_field=IntegerField())), \
+        Q(tags__contains=['highway']) | Q(tags__contains=['road'])), then = 1), \
+        default = 0, output_field=IntegerField())), \
         Education_end = Sum( \
         Case(When((Q(tags__contains=['school']) | Q(tags__contains=['college']) | \
-        Q(tags__contains=['university']) | Q(tags__contains=['kindergarten']) | \
-        Q(tags__contains=['music_school'])), then = 1), \
-        default = 0, \
-        output_field=IntegerField())), \
+        Q(tags__contains=['university']) ), then = 1), \
+        default = 0, output_field=IntegerField())), \
         Health_end = Sum( \
-        Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['health']) | \
-        Q(tags__contains=['clinic']) | Q(tags__contains=['dentist']) | Q(tags__contains=['medical']) | \
-        Q(tags__contains=['surgery'])), then = 1), \
-        default = 0, \
-        output_field=IntegerField())) \
-        )
+        Case(When((Q(tags__contains=['hospital']) | Q(tags__contains=['clinic'])), then = 1), \
+        default = 0, output_field=IntegerField())) )
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
 
@@ -228,14 +204,26 @@ def nepal_statistics_view(request):
 # ---------------------------------- SELECTION WITHIN NEPAL, DATE RANGE META DATA
 def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
     d = debug_tool() # DEBUG
+    sstart,send = timerange.split(",")
+    start = dateutil.parser.parse(sstart)
+    end = dateutil.parser.parse(send)
+    # define our bounding box
+    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
+    # get all the objects
+    ndtmp = Feature.geoobjects.filter(Q(feature_type='node') & Q(point__intersects=box))
+    # get the unique ids from ndtmp as strings
+    strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).values_list('feature_id_str',flat=True).distinct()
+    # combine all features containing >=1 ok members with my existing list of ok nodes
+    rw = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Member.objects.filter(ref__in=strids)))
+    ob = rw | ndtmp
     stat = {}
     stat['Nodes'] = {}
     stat['Ways'] = {}
-    d.deprint("now time for selection") # DEBUG
-    stat['Selection Statistics'] = selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user)
+    d.deprint("now time for selection") # DEBUG 
+    stat['Selection Statistics'] = selection_card(ob, start, end, user)
     # d.deprint("going to enumerate over nodes leaderboards") # DEBUG
     # stat['Nodes'] = top_five(user, ndtmp, 'node')
     d.deprint("going to enumerate over ways leaderboards") # DEBUG
-    stat['Ways'] = top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user)
+    stat['Ways'] = top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, rw, user)
     d.deend() # DEBUG
     return JsonResponse(stat)
