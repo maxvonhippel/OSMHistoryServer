@@ -57,8 +57,11 @@ def most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, user, ftype):
     start = dateutil.parser.parse(sstart)
     end = dateutil.parser.parse(send)
     arr = [ user, start, end, mn_x, mx_x, mn_y, mx_y ]
+    print("parsing most frequent poi for: ", arr)
     ret = Feature.geoobjects.raw("SELECT value as id FROM ( SELECT value, count(*) FROM ( SELECT b.feature_id, b.feature_type, b.timestamp, b.user, svals ( SLICE(b.tags, ARRAY['amenity', 'hospital', 'business', 'aerialway', 'aeroway', 'name', 'place', 'healthcare', 'barrier', 'boundary', 'building', 'craft', 'emergency', 'geological', 'highway', 'historic', 'landuse', 'type', 'leisure', 'man_made', 'military', 'natural', 'office', 'power', 'public_transport', 'railway', 'route', 'shop', 'sport', 'waterway', 'tunnel', 'service'])) AS value FROM osmhistorynepal_feature b WHERE b.user = %s AND b.feature_type = %s AND b.timestamp >= %s::date AND b.timestamp <= %s::date AND ST_X(b.point::geometry) >= %s::int AND ST_X(b.point::geometry) <= %s::int AND ST_Y(b.point::geometry) >= %s::int AND ST_Y(b.point::geometry) <= %s::int) AS stat WHERE NOT value IN ( 'yes', 'no', 'primary', 'secondary', 'unclassified') AND NOT value ~ '^[0-9]+$' GROUP BY value ORDER BY count DESC, value LIMIT 1 ) AS vc", [user, ftype, start, end, mn_x, mx_x, mn_y, mx_y])
-    return ret[0].id
+    if ret != []:
+        return ret[0].id
+    else return ""
 
 # ---------------------------------- TOP FIVE MOST ACTIVE USERS IN SELECTION
 def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
@@ -89,7 +92,9 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user):
         usr = cur[0]
         ret[word]["OSM Username"] = usr
         ret[word]["Ways"] = cur[1]
-        ret[word]['Most Frequently Edited POI'] = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, nodeuser, 'way')
+        curpoi = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, nodeuser, 'way')
+        print("curpoi for ways: ", curpoi)
+        ret[word]['Most Frequently Edited POI'] = curpoi
         if user == usr:
             ret[word]['highlighted'] = 1
             found = True
@@ -177,7 +182,9 @@ def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second
     print("parsing vals:")
     for val in [ first, second, third, fourth, fifth ]:
         print("parsing val: ", val)
-        ret[val] = most_frequent_poi(range, mn_x, mn_y, mx_x, mx_y, val, 'node')
+        curpoi = most_frequent_poi(range, mn_x, mn_y, mx_x, mx_y, val, 'node')
+        print("curpoi for nodes: ", curpoi)
+        ret[val] = curpoi
     return JsonResponse(ret)
 
 # ---------------------------------- ALL OF NEPAL META DATA
