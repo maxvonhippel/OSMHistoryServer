@@ -216,14 +216,15 @@ def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
     # combine all features containing >=1 ok members with my existing list of ok nodes
     rw = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Member.objects.filter(ref__in=strids)))
     ob = rw | ndtmp
-    stat = {}
-    stat['Nodes'] = {}
-    stat['Ways'] = {}
     d.deprint("now time for selection") # DEBUG 
-    stat['Selection Statistics'] = selection_card(ob, start, end, user)
+    stat = selection_card(ob, start, end, user)
+    d.deend() # DEBUG
+    # stat = {}
+    # stat['Ways'] = {}
+    # stat['Nodes'] = {}
     # d.deprint("going to enumerate over nodes leaderboards") # DEBUG
     # stat['Nodes'] = top_five(user, ndtmp, 'node')
-    d.deprint("going to enumerate over ways leaderboards") # DEBUG
-    stat['Ways'] = top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, rw, user)
-    d.deend() # DEBUG
+    # d.deprint("going to enumerate over ways leaderboards") # DEBUG
+    # stat['Ways'] = top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, rw, user)
     return JsonResponse(stat)
+    
