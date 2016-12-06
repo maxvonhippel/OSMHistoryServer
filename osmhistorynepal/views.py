@@ -218,28 +218,14 @@ def nepal_statistics_view(request):
 # ---------------------------------- SELECTION WITHIN NEPAL, DATE RANGE META DATA
 def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
     d = debug_tool() # DEBUG
-    # parse range
-    # eg 2007-08-29T04:08:07+05:45,2007-08-29T04:08:07+05:45
-    sstart,send = timerange.split(",")
-    start = dateutil.parser.parse(sstart)
-    end = dateutil.parser.parse(send)
-    # define our bounding box
-    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
-    # get all the objects
-    ndtmp = Feature.geoobjects.filter(Q(feature_type='node') & Q(point__intersects=box))
-    # get the unique ids from ndtmp as strings
-    strids = ndtmp.extra({'feature_id_str':"CAST(feature_id AS VARCHAR)"}).values_list('feature_id_str',flat=True).distinct()
-    # combine all features containing >=1 ok members with my existing list of ok nodes
-    rw = Feature.geoobjects.prefetch_related(Prefetch('members', queryset=Member.objects.filter(ref__in=strids)))
-    ob = rw | ndtmp
     stat = {}
     stat['Nodes'] = {}
     stat['Ways'] = {}
     d.deprint("now time for selection") # DEBUG
-    stat['Selection Statistics'] = selection_card(ob, start, end)
+    stat['Selection Statistics'] = selection_card(timerange, mn_x, mn_y, mx_x, mx_y, user)
     # d.deprint("going to enumerate over nodes leaderboards") # DEBUG
     # stat['Nodes'] = top_five(user, ndtmp, 'node')
     d.deprint("going to enumerate over ways leaderboards") # DEBUG
-    stat['Ways'] = top_five(range, mn_x, mn_y, mx_x, mx_y, user)
+    stat['Ways'] = top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, user)
     d.deend() # DEBUG
     return JsonResponse(stat)
