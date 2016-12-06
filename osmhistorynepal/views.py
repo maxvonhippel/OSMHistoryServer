@@ -182,7 +182,7 @@ def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second
     print("parsing vals:")
     for val in [ first, second, third, fourth, fifth ]:
         print("parsing val: ", val)
-        curpoi = most_frequent_poi(range, mn_x, mn_y, mx_x, mx_y, val, 'node')
+        curpoi = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, val, 'node')
         print("curpoi for nodes: ", curpoi)
         ret[val] = curpoi
     return JsonResponse(ret)
