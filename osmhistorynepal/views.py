@@ -127,7 +127,7 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, ob, user):
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
 # ---------------------------------- All THE NODES ON A GIVEN DATE / USER
-def nodes_view(request, mn_x, mn_y, mx_x, mx_y, date, user):
+def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
     # the timezone chosen is totally arbitrary
     date = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(date))
     minus = date - timedelta(1)
