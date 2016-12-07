@@ -160,7 +160,7 @@ def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
     except IndexError:
         return "none"
     final = [ [ a.id, a.lon, a.lat, a.versions ] for a in ret ]
-    return HttpResponse(ret)
+    return HttpResponse(final)
 
 # ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
