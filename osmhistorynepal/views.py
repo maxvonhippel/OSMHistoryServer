@@ -141,8 +141,9 @@ def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
         Q(point__intersects=box) & Q(timestamp__range=[minus,plus]))
     if user:
         op = op.filter(user=user)
-    ret = op.values_list('point', 'user', 'timestamp')
+    ret = [ [a[0].x, a[0].y, a[1], a[2] ] for a in op.values_list('point', 'user', 'timestamp') ]
     print("ret 0:", ret[0])
+    # ret 0: (<Point object at 0x7fa540895f78>, 'Pujan Poudyal', datetime.datetime(2015, 3, 4, 6, 10, 36, tzinfo=<UTC>))
     return JsonResponse(ret)
 
 # ---------------------------------- ALL OF NEPAL USERS
