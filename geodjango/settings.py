@@ -20,8 +20,11 @@ STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# SECURITY WARNING: keep the secret key used in production secret! <<<<<<<<<<
 SECRET_KEY = 'lje$we7!g5=vo)wp8v-1&995u*0jh#4wwcs!dqx3=-e8zg0$oo'
+
+# change to our domain once we add it <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+CORS_ORIGIN_WHITELIST = ( 'http://139.59.37.112/NepalOSMHistory' )
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
