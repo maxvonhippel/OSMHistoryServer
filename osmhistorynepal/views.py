@@ -135,15 +135,30 @@ def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
     plus = date + timedelta(1)
     print("minus: ", minus, " plus: ", plus)
     # define our bounding box
-    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     # get all the objects
-    op = Feature.geoobjects.filter(Q(feature_type='node') & \
-        Q(point__intersects=box) & Q(timestamp__range=[minus,plus]))
     if user:
-        op = op.filter(user=user)
-    ret = [ [a[0].x, a[0].y, a[1], a[2] ] for a in op.values_list('point', 'user', 'timestamp') ]
-    print("ret 0:", ret[0])
-    # ret 0: (<Point object at 0x7fa540895f78>, 'Pujan Poudyal', datetime.datetime(2015, 3, 4, 6, 10, 36, tzinfo=<UTC>))
+        arr = [ plus, minus, mn_x, mx_x, mn_y, mx_y, user ]
+        ret = Feature.geoobjects.raw("SELECT a.feature_id, AVG(ST_X(a.point::geometry))," \
+            " AVG(ST_Y(a.point::geometry)), array_agg(a.user || ':' || a.timestamp::date)" \
+            " FROM osmhistorynepal_feature a WHERE a.feature_type='node'" \
+            " AND a.timestamp <= %s::date AND a.timestamp >= %s::date" \
+            " AND ST_X(b.point::geometry) >= %s::int AND ST_X(b.point::geometry) <= %s::int" \
+            " AND ST_Y(b.point::geometry) >= %s::int AND ST_Y(b.point::geometry) <= %s::int" \
+            " AND a.user = %s" \
+            " GROUP BY a.feature_id, a.feature_type", arr)
+    else:
+        arr = [ plus, minus, mn_x, mx_x, mn_y, mx_y ]
+        ret = Feature.geoobjects.raw("SELECT a.feature_id, AVG(ST_X(a.point::geometry))," \
+            " AVG(ST_Y(a.point::geometry)), array_agg(a.user || ':' || a.timestamp::date)" \
+            " FROM osmhistorynepal_feature a WHERE a.feature_type='node'" \
+            " AND a.timestamp <= %s::date AND a.timestamp >= %s::date" \
+            " AND ST_X(b.point::geometry) >= %s::int AND ST_X(b.point::geometry) <= %s::int" \
+            " AND ST_Y(b.point::geometry) >= %s::int AND ST_Y(b.point::geometry) <= %s::int" \
+            " GROUP BY a.feature_id, a.feature_type", arr)
+    try:
+        ret[0]
+    except IndexError:
+        return "none"
     return JsonResponse(ret)
 
 # ---------------------------------- ALL OF NEPAL USERS
