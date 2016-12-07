@@ -127,40 +127,37 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, ob, user):
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
 # ---------------------------------- All THE NODES ON A GIVEN DATE / USER
-def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
+#def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
     # the timezone chosen is totally arbitrary
-    print("nodes view request: ", date, mn_x, mn_y, mx_x, mx_y, user)
-    date = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(date))
-    minus = date - timedelta(1)
-    plus = date + timedelta(1)
-    print("minus: ", minus, " plus: ", plus)
+#    print("nodes view request: ", date, mn_x, mn_y, mx_x, mx_y, user)
+#    date = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(date))
+#    minus = date - timedelta(1)
+#    plus = date + timedelta(1)
+#    print("minus: ", minus, " plus: ", plus)
     # define our bounding box
     # get all the objects
-    if user:
-        arr = [ plus, minus, mn_x, mx_x, mn_y, mx_y, user ]
-        ret = Feature.geoobjects.raw("SELECT a.feature_id AS id, AVG(ST_X(a.point::geometry)) AS lon," \
-            " AVG(ST_Y(a.point::geometry)) AS lat, array_agg(a.user || ':' || a.timestamp::date) AS versions" \
-            " FROM osmhistorynepal_feature a WHERE a.feature_type='node'" \
-            " AND a.timestamp <= %s::date AND a.timestamp >= %s::date" \
-            " AND ST_X(a.point::geometry) >= %s::int AND ST_X(a.point::geometry) <= %s::int" \
-            " AND ST_Y(a.point::geometry) >= %s::int AND ST_Y(a.point::geometry) <= %s::int" \
-            " AND a.user = %s" \
-            " GROUP BY a.id, a.feature_type", arr)
-    else:
-        arr = [ plus, minus, mn_x, mx_x, mn_y, mx_y ]
-        ret = Feature.geoobjects.raw("SELECT a.feature_id AS id, AVG(ST_X(a.point::geometry)) AS lon," \
-            " AVG(ST_Y(a.point::geometry)) AS lat, array_agg(a.user || ':' || a.timestamp::date) AS versions" \
-            " FROM osmhistorynepal_feature a WHERE a.feature_type='node'" \
-            " AND a.timestamp <= %s::date AND a.timestamp >= %s::date" \
-            " AND ST_X(a.point::geometry) >= %s::int AND ST_X(a.point::geometry) <= %s::int" \
-            " AND ST_Y(a.point::geometry) >= %s::int AND ST_Y(a.point::geometry) <= %s::int" \
-            " GROUP BY a.id, a.feature_type", arr)
-    try:
-        ret[0]
-    except IndexError:
-        return "none"
-    
-    return JsonResponse(ret)
+#    if user:
+#        arr = [ plus, minus, mn_x, mx_x, mn_y, mx_y, user ]
+#        ret = Feature.geoobjects.raw("SELECT a.feature_id AS id, AVG(ST_X(a.point::geometry)) AS lon," \
+#            " AVG(ST_Y(a.point::geometry)) AS lat, array_agg(a.user || ':' || a.timestamp::date) AS versions" \
+#            " FROM osmhistorynepal_feature a WHERE a.feature_type='node'" \
+#            " AND a.timestamp <= %s::date AND a.timestamp >= %s::date" \
+#            " AND ST_X(a.point::geometry) >= %s::int AND ST_X(a.point::geometry) <= %s::int" \
+#            " AND ST_Y(a.point::geometry) >= %s::int AND ST_Y(a.point::geometry) <= %s::int" \
+#            " AND a.user = %s" \
+#            " GROUP BY a.id, a.feature_type", arr)
+#    else:
+#        arr = [ plus, minus, mn_x, mx_x, mn_y, mx_y ]
+#        ret = Feature.geoobjects.raw("SELECT a.feature_id AS id, AVG(ST_X(a.point::geometry)) AS lon," \
+#            " AVG(ST_Y(a.point::geometry)) AS lat, array_agg(a.user || ':' || a.timestamp::date) AS versions" \
+#            " FROM osmhistorynepal_feature a WHERE a.feature_type='node'" \
+#            " AND a.timestamp <= %s::date AND a.timestamp >= %s::date" \
+#            " AND ST_X(a.point::geometry) >= %s::int AND ST_X(a.point::geometry) <= %s::int" \
+#            " AND ST_Y(a.point::geometry) >= %s::int AND ST_Y(a.point::geometry) <= %s::int" \
+#            " GROUP BY a.id, a.feature_type", arr)
+#    full = []
+#    for item in ret:
+#        line = item.
 
 # ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
