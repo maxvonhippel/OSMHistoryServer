@@ -129,9 +129,11 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, ob, user):
 # ---------------------------------- All THE NODES ON A GIVEN DATE / USER
 def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
     # the timezone chosen is totally arbitrary
+    print("nodes view request: ", date, mn_x, mn_y, mx_x, mx_y, user)
     date = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(date))
     minus = date - timedelta(1)
     plus = date + timedelta(1)
+    print("minus: ", minus, " plus: ", plus)
     # define our bounding box
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     # get all the objects
@@ -139,7 +141,9 @@ def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
         Q(point__intersects=box) & Q(timestamp__range=[minus,plus]))
     if user:
         op = op.filter(user=user)
-    return JsonResponse(op.values_list('point', 'user', 'timestamp'))
+    ret = op.values_list('point', 'user', 'timestamp')
+    print("ret 0:", ret[0])
+    return JsonResponse(ret)
 
 # ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
