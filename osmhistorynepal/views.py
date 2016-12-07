@@ -126,6 +126,22 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, ob, user):
     return ret
 
 # ---------------------------------- ACTUAL VIEWS ---------------------------------------------
+# ---------------------------------- All THE NODES ON A GIVEN DATE / USER
+def nodes_view(request, mn_x, mn_y, mx_x, mx_y, date, user):
+    # the timezone chosen is totally arbitrary
+    date = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(date))
+    minus = new Date()
+    plus = new Date()
+    minus.setDate(date.getDate() - 1)
+    plus.setDate(date.getDate() + 1)
+    # define our bounding box
+    box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
+    # get all the objects
+    op = Feature.geoobjects.filter(Q(feature_type='node') & \
+        Q(point__intersects=box) & Q(timestamp__range=[minus,plus]))
+    if user:
+        op = op.filter(user=user)
+    return JsonResponse(op.values_list('point', 'user', 'timestamp'))
 
 # ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
