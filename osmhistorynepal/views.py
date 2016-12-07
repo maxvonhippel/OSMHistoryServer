@@ -130,10 +130,8 @@ def top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, ob, user):
 def nodes_view(request, mn_x, mn_y, mx_x, mx_y, date, user):
     # the timezone chosen is totally arbitrary
     date = pytz.timezone('Asia/Taipei').localize(dateutil.parser.parse(date))
-    minus = new Date()
-    plus = new Date()
-    minus.setDate(date.getDate() - 1)
-    plus.setDate(date.getDate() + 1)
+    minus = date - timedelta(1)
+    plus = date + timedelta(1)
     # define our bounding box
     box = Polygon.from_bbox((mn_x, mn_y, mx_x, mx_y))
     # get all the objects
