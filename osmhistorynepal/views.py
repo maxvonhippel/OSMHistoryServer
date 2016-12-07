@@ -159,7 +159,8 @@ def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
         ret[0]
     except IndexError:
         return "none"
-    return HttpResponse(ret)
+    
+    return JsonResponse(ret)
 
 # ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
