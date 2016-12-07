@@ -138,28 +138,29 @@ def nodes_view(request, date, mn_x, mn_y, mx_x, mx_y, user):
     # get all the objects
     if user:
         arr = [ plus, minus, mn_x, mx_x, mn_y, mx_y, user ]
-        ret = Feature.geoobjects.raw("SELECT a.feature_id, AVG(ST_X(a.point::geometry))," \
-            " AVG(ST_Y(a.point::geometry)), array_agg(a.user || ':' || a.timestamp::date)" \
+        ret = Feature.geoobjects.raw("SELECT a.feature_id AS id, AVG(ST_X(a.point::geometry)) AS lon," \
+            " AVG(ST_Y(a.point::geometry)) AS lat, array_agg(a.user || ':' || a.timestamp::date) AS versions" \
             " FROM osmhistorynepal_feature a WHERE a.feature_type='node'" \
             " AND a.timestamp <= %s::date AND a.timestamp >= %s::date" \
-            " AND ST_X(b.point::geometry) >= %s::int AND ST_X(b.point::geometry) <= %s::int" \
-            " AND ST_Y(b.point::geometry) >= %s::int AND ST_Y(b.point::geometry) <= %s::int" \
+            " AND ST_X(a.point::geometry) >= %s::int AND ST_X(a.point::geometry) <= %s::int" \
+            " AND ST_Y(a.point::geometry) >= %s::int AND ST_Y(a.point::geometry) <= %s::int" \
             " AND a.user = %s" \
-            " GROUP BY a.feature_id, a.feature_type", arr)
+            " GROUP BY a.id, a.feature_type", arr)
     else:
         arr = [ plus, minus, mn_x, mx_x, mn_y, mx_y ]
-        ret = Feature.geoobjects.raw("SELECT a.feature_id, AVG(ST_X(a.point::geometry))," \
-            " AVG(ST_Y(a.point::geometry)), array_agg(a.user || ':' || a.timestamp::date)" \
+        ret = Feature.geoobjects.raw("SELECT a.feature_id AS id, AVG(ST_X(a.point::geometry)) AS lon," \
+            " AVG(ST_Y(a.point::geometry)) AS lat, array_agg(a.user || ':' || a.timestamp::date) AS versions" \
             " FROM osmhistorynepal_feature a WHERE a.feature_type='node'" \
             " AND a.timestamp <= %s::date AND a.timestamp >= %s::date" \
-            " AND ST_X(b.point::geometry) >= %s::int AND ST_X(b.point::geometry) <= %s::int" \
-            " AND ST_Y(b.point::geometry) >= %s::int AND ST_Y(b.point::geometry) <= %s::int" \
-            " GROUP BY a.feature_id, a.feature_type", arr)
+            " AND ST_X(a.point::geometry) >= %s::int AND ST_X(a.point::geometry) <= %s::int" \
+            " AND ST_Y(a.point::geometry) >= %s::int AND ST_Y(a.point::geometry) <= %s::int" \
+            " GROUP BY a.id, a.feature_type", arr)
     try:
         ret[0]
     except IndexError:
         return "none"
-    return JsonResponse(ret)
+    final = [ [ a.id, a.lon, a.lat, a.versions ] for a in ret ]
+    return HttpResponse(ret)
 
 # ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
