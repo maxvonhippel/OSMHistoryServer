@@ -8,7 +8,7 @@ from django_hstore.hstore import DictionaryField
 from django.contrib.gis.geos import Point, Polygon
 from osmhistorynepal.models import Member, Feature # your appname.models, and your model names, here
 from django.db.models import Count, Q, IntegerField, Sum, Case, When, Prefetch
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
 from django.utils import timezone
