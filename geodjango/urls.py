@@ -28,7 +28,7 @@ urlpatterns = [
     url(r'^topnodes/(?P<timerange>([0-9T,-:+])+)/(?P<mn_x>([0-9]+.[0-9]+))/(?P<mn_y>([0-9]+.[0-9]+))/(?P<mx_x>([0-9]+.[0-9]+))/(?P<mx_y>([0-9]+.[0-9]+))/(?P<first>\w*)/(?P<second>\w*)/(?P<third>\w*)/(?P<fourth>\w*)/(?P<fifth>\w*)/', json_views.top_five_nodes_poi),
     url(r'^jsoncountry/', json_views.nepal_statistics_view),
     url(r'^jsonselection/(?P<timerange>([0-9T,-:+])+)/(?P<mn_x>([0-9]+.[0-9]+))/(?P<mn_y>([0-9]+.[0-9]+))/(?P<mx_x>([0-9]+.[0-9]+))/(?P<mx_y>([0-9]+.[0-9]+))/(?P<user>\w*)/', json_views.selection_statistics_view),
-    # url(r'^nodes/(?P<date>([0-9T,-:+])+)/(?P<mn_x>\d+)/(?P<mn_y>\d+)/(?P<mx_x>\d+)/(?P<mx_y>\d+)/(?P<user>\w*)/', json_views.nodes_view),
+    url(r'^today/(?P<day>([0-9T,-:+])+)/', json_views.day_view),
 
 ]
 
