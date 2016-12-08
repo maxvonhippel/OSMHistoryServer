@@ -169,7 +169,9 @@ def user_names_view(request):
     for p in arr: ret += "\n" + '"' + p[0].replace('"',r'\"') + '",' # fix later
     ret = ret[:-1]
     ret += "\n" + '];'
-    return HttpResponse(ret)
+    b = HttpResponse(ret)
+    b['Access-Control-Allow-Origin'] = 'http://139.59.37.112'
+    return b
 
 # ---------------------------------- MOST FREQUENT POI FOR SELECTED USER
 def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second, third, fourth, fifth):
@@ -185,7 +187,9 @@ def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second
         curpoi = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, val, 'node')
         print("curpoi for nodes: ", curpoi)
         ret[val] = curpoi
-    return JsonResponse(ret)
+    b = JsonResponse(ret)
+    b['Access-Control-Allow-Origin'] = 'http://139.59.37.112'
+    return b
 
 # ---------------------------------- ALL OF NEPAL META DATA
 def nepal_statistics_view(request):  
@@ -212,7 +216,9 @@ def nepal_statistics_view(request):
     # count the distinct mappers
     nstat['Mappers'] = Feature.geoobjects.values('uid').distinct().count()
     # wrap it up in a json format and return it
-    return JsonResponse(nstat)
+    b = JsonResponse(nstat)
+    b['Access-Control-Allow-Origin'] = 'http://139.59.37.112'
+    return b
 
 # ---------------------------------- SELECTION WITHIN NEPAL, DATE RANGE META DATA
 def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
@@ -275,5 +281,7 @@ def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
     # stat['Nodes'] = top_five(user, ndtmp, 'node')
     # d.deprint("going to enumerate over ways leaderboards") # DEBUG
     # stat['Ways'] = top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, rw, user)
-    return JsonResponse(stat)
+    b = JsonResponse(stat)
+    b['Access-Control-Allow-Origin'] = 'http://139.59.37.112'
+    return b
     
