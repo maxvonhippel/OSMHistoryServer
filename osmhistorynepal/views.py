@@ -3,7 +3,7 @@ from django.shortcuts import render
 import sys
 import json
 from django.http import HttpResponse
-from django.utils import simplejson
+import simplejson
 from django_hstore import hstore
 from django_hstore.hstore import DictionaryField
 from django.contrib.gis.geos import Point, Polygon
