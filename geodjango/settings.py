@@ -26,6 +26,7 @@ SECRET_KEY = 'lje$we7!g5=vo)wp8v-1&995u*0jh#4wwcs!dqx3=-e8zg0$oo'
 # change to our domain once we add it <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 # CORS_ORIGIN_WHITELIST = ( 'http://139.59.37.112/NepalOSMHistory' )
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = False
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
