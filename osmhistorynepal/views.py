@@ -2,7 +2,8 @@ from django.shortcuts import render
 
 import sys
 import json
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
+from django.utils import simplejson
 from django_hstore import hstore
 from django_hstore.hstore import DictionaryField
 from django.contrib.gis.geos import Point, Polygon
@@ -187,7 +188,8 @@ def top_five_nodes_poi(request, timerange, mn_x, mn_y, mx_x, mx_y, first, second
         curpoi = most_frequent_poi(timerange, mn_x, mn_y, mx_x, mx_y, val, 'node')
         print("curpoi for nodes: ", curpoi)
         ret[val] = curpoi
-    b = JsonResponse(ret)
+    b = HttpResponse(simplejson.dumps(ret))
+    b['mimetype'] = 'application/json'
     b['Access-Control-Allow-Origin'] = 'http://139.59.37.112'
     return b
 
@@ -216,7 +218,8 @@ def nepal_statistics_view(request):
     # count the distinct mappers
     nstat['Mappers'] = Feature.geoobjects.values('uid').distinct().count()
     # wrap it up in a json format and return it
-    b = JsonResponse(nstat)
+    b = HttpResponse(simplejson.dumps(nstat))
+    b['mimetype'] = 'application/json'
     b['Access-Control-Allow-Origin'] = 'http://139.59.37.112'
     return b
 
@@ -281,7 +284,8 @@ def selection_statistics_view(request, timerange, mn_x, mn_y, mx_x, mx_y, user):
     # stat['Nodes'] = top_five(user, ndtmp, 'node')
     # d.deprint("going to enumerate over ways leaderboards") # DEBUG
     # stat['Ways'] = top_five_ways(timerange, mn_x, mn_y, mx_x, mx_y, rw, user)
-    b = JsonResponse(stat)
+    b = HttpResponse(simplejson.dumps(stat))
+    b['mimetype'] = "application/json"
     b['Access-Control-Allow-Origin'] = 'http://139.59.37.112'
     return b
     
