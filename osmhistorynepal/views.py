@@ -141,7 +141,7 @@ def day_view(request, day):
     # create the timestamp for psql
     b = d.strftime('%Y-%m-%d')
     # verify for security that this is indeed a good looking timestamp
-    pattern = re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2}::date){1}")
+    pattern = re.compile("([0-9]{4}-[0-9]{2}-[0-9]{2}){1}")
     if not pattern.match(b):
         return HttpResponse("null")
     # if we made it this far, then our string appears to be safe
