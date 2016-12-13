@@ -157,7 +157,6 @@ def day_view(request, day):
     ret['Access-Control-Allow-Origin'] = 'http://139.59.37.112'
     return ret
 
-
 # ---------------------------------- ALL OF NEPAL USERS
 def user_names_view(request):
     c = connection.cursor()

@@ -9,7 +9,7 @@ echo "vacuuming the features";
 psql nepaldata -c "VACUUM (VERBOSE, ANALYZE) osmhistorynepal_feature;";
 echo "generating the nodes csv";
 psql nepaldata -c "\COPY ( SELECT a.feature_id, AVG(ST_X(a.point::geometry)), AVG(ST_Y(a.point::geometry)), array_agg(a.user || ':' || a.timestamp::date) FROM osmhistorynepal_feature a WHERE a.feature_type='node' GROUP BY a.feature_id, a.feature_type ) TO '/var/www/html/NepalOSMHistory/data/sampledaily/nodes.csv' WITH CSV DELIMITER ','";
-echo "gzipping nodes.csv";
-gzip -k nodes.csv;
+# echo "gzipping nodes.csv";
+# gzip -k nodes.csv;
 echo "done!";
 # done
