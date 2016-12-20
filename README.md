@@ -7,3 +7,5 @@ OHS is built to server data to web-based data visualization client.  Ours is cal
 More information can be found in the [Wiki](https://github.com/maxvonhippel/OSMHistoryServer/wiki).
 
 You can reach Max on Twitter [`@_m_vh`](https://twitter.com/_m_vh), or Kathmandu Living Labs [@KTMLivingLabs](https://twitter.com/KTMLivingLabs). We accept and welcome pull requests! But regardless, feel free to fork. **MIT License with Attribution.**
+
+Note: **Please remember** to change the security key in your settings.py when you set up your server.
