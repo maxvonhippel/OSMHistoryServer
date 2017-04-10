@@ -1,4 +1,4 @@
-###README for OSM History Server
+### README for OSM History Server
 
 The OSM History Server (OHS) is a project by Kathmandu Living Labs and the Dartmouth Dickey Center. It was built by Max.
 
